@@ -96,15 +96,15 @@ public class MultiplexerHDLGeneratorFactory extends AbstractHDLGeneratorFactory 
       Contents.add("");
       Contents.add("   always @(*)");
       Contents.add("   begin");
-      Contents.add("      if (~Enable) s_selected_vector <= 0;");
+      Contents.add("      if (~Enable) s_selected_vector = 0;");
       Contents.add("      else case (Sel)");
       for (int i = 0; i < (1 << nr_of_select_bits) - 1; i++) {
         Contents.add("         " + IntToBin(i, nr_of_select_bits, HDLType) + ":");
-        Contents.add("            s_selected_vector <= MuxIn_" + Integer.toString(i) + ";");
+        Contents.add("            s_selected_vector = MuxIn_" + Integer.toString(i) + ";");
       }
       Contents.add("         default:");
       Contents.add(
-          "            s_selected_vector <= MuxIn_"
+          "            s_selected_vector = MuxIn_"
               + Integer.toString((1 << nr_of_select_bits) - 1)
               + ";");
       Contents.add("      endcase");
