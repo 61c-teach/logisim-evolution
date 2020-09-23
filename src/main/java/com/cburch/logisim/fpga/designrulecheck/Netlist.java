@@ -1262,7 +1262,7 @@ public class Netlist implements CircuitListener {
                 if (!thisnet.hasBitSource(bit)) {
                   if (HasHiddenSource(
                       thisnet,
-                      (byte) 0,
+                      (byte) bit,
                       Rootbus,
                       ConnectedBusIndex,
                       MyComplexSplitters,
