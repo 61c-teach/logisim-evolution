@@ -159,7 +159,7 @@ public class AbstractGateHdlGenerator extends AbstractHdlGeneratorFactory {
         lines.add("genvar n;");
         lines.add("generate");
         lines.add("   for (n = 0 ; n < " + BIT_WIDTH_STRING + " ; n = n + 1)");
-        lines.add("      begin: bit");
+        lines.add("      begin: bits");
         spaces += "      ";
         indexString = "[n]";
       }
