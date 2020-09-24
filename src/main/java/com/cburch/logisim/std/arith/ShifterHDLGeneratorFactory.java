@@ -120,29 +120,15 @@ public class ShifterHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
           "    ***************************************************************************/");
       Contents.add("");
       Contents.add("");
-      if (nrOfBits == 1) {
-        Contents.add("   assign Result = ((" + ShiftModeStr + " == 1)||");
-        Contents.add("                    (" + ShiftModeStr + " == 3)||");
-        Contents.add(
-            "                    (" + ShiftModeStr + " == 4)) ? DataA : DataA&(~ShiftAmount);");
-      } else {
-        int stage;
-        for (stage = 0; stage < getNrofShiftBits(attrs); stage++) {
-          Contents.addAll(GetStageFunctionalityVerilog(stage, nrOfBits));
-        }
-        Contents.add(
-            "   /***************************************************************************");
-        Contents.add(
-            "    ** Here we assign the result                                             **");
-        Contents.add(
-            "    ***************************************************************************/");
-        Contents.add("");
-        Contents.add(
-            "   assign Result = s_stage_"
-                + (getNrofShiftBits(attrs) - 1)
-                + "_result;");
-        Contents.add("");
-      }
+      Contents.add("   wire [" + Integer.toString(2*nrOfBits) + ":0] left_rotate = {DataA, DataA} << ShiftAmount;");
+      Contents.add("   wire [" + Integer.toString(2*nrOfBits) + ":0] right_rotate = {DataA, DataA} >> ShiftAmount;");
+      Contents.add("");
+      Contents.add("");
+      Contents.add("   assign Result = (ShifterMode == 0) ? DataA << ShiftAmount :");
+      Contents.add("                   (ShifterMode == 1) ? left_rotate[" + Integer.toString(2*nrOfBits-1) + ":" + Integer.toString(nrOfBits) + "] :");
+      Contents.add("                   (ShifterMode == 2) ? DataA >> ShiftAmount :");
+      Contents.add("                   (ShifterMode == 3) ? DataA >>> ShiftAmount :");
+      Contents.add("                   (ShifterMode == 4) ? right_rotate[" + Integer.toString(nrOfBits-1) + ":0] : DataA;");
     }
     return Contents;
   }
@@ -193,109 +179,6 @@ public class ShifterHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
         GetNetMap("ShiftAmount", true, ComponentInfo, Shifter.IN1, Reporter, HDLType, Nets));
     PortMap.putAll(GetNetMap("Result", true, ComponentInfo, Shifter.OUT, Reporter, HDLType, Nets));
     return PortMap;
-  }
-
-  private ArrayList<String> GetStageFunctionalityVerilog(int StageNumber, int NrOfBits) {
-    ArrayList<String> Contents = new ArrayList<>();
-    int nr_of_bits_to_shift = (1 << StageNumber);
-    Contents.add("   /***************************************************************************");
-    Contents.add(
-        "    ** Here stage "
-            + StageNumber
-            + " of the binary shift tree is defined                     **");
-    Contents.add(
-        "    ***************************************************************************/");
-    Contents.add("");
-    if (StageNumber == 0) {
-      Contents.add(
-          "   assign s_stage_0_shiftin = (("
-              + ShiftModeStr
-              + "== 1)||("
-              + ShiftModeStr
-              + "==3)) ?");
-      Contents.add("                              DataA[" + (NrOfBits - 1) + "] :");
-      Contents.add("                              (" + ShiftModeStr + "== 4) ? DataA[0] : 0;");
-      Contents.add("");
-      Contents.add("   assign s_stage_0_result  = (ShiftAmount == 0) ? DataA :");
-      Contents.add(
-          "                              (("
-              + ShiftModeStr
-              + "== 0) || ("
-              + ShiftModeStr
-              + "== 1)) ?");
-      Contents.add(
-          "                              {DataA["
-              + (NrOfBits - 2)
-              + ":0],s_stage_0_shiftin} :");
-      Contents.add(
-          "                              {s_stage_0_shiftin,DataA["
-              + (NrOfBits - 1)
-              + ":1]};");
-      Contents.add("");
-    } else {
-      Contents.add("   assign s_stage_" + StageNumber + "_shiftin = (" + ShiftModeStr + "== 1) ?");
-      Contents.add(
-          "                              s_stage_"
-              + (StageNumber - 1)
-              + "_result["
-              + (NrOfBits - 1)
-              + ":"
-              + (NrOfBits - nr_of_bits_to_shift)
-              + "] : ");
-      Contents.add("                              (" + ShiftModeStr + "== 3) ?");
-      Contents.add(
-          "                              {"
-              + nr_of_bits_to_shift
-              + "{s_stage_"
-              + (StageNumber - 1)
-              + "_result["
-              + (NrOfBits - 1)
-              + "]}} :");
-      Contents.add("                              (" + ShiftModeStr + "== 4) ?");
-      Contents.add(
-          "                              s_stage_"
-              + (StageNumber - 1)
-              + "_result["
-              + (nr_of_bits_to_shift - 1)
-              + ":0] : 0;");
-      Contents.add("");
-      Contents.add(
-          "   assign s_stage_"
-              + StageNumber
-              + "_result  = (ShiftAmount["
-              + StageNumber
-              + "]==0) ?");
-      Contents.add(
-          "                              s_stage_"
-              + (StageNumber - 1)
-              + "_result : ");
-      Contents.add(
-          "                              (("
-              + ShiftModeStr
-              + "== 0)||("
-              + ShiftModeStr
-              + "== 1)) ?");
-      Contents.add(
-          "                              {s_stage_"
-              + (StageNumber - 1)
-              + "_result["
-              + (NrOfBits - nr_of_bits_to_shift - 1)
-              + ":0],s_stage_"
-              + StageNumber
-              + "_shiftin} :");
-      Contents.add(
-          "                              {s_stage_"
-              + StageNumber
-              + "_shiftin,s_stage_"
-              + (StageNumber - 1)
-              + "_result["
-              + (NrOfBits - 1)
-              + ":"
-              + nr_of_bits_to_shift
-              + "]};");
-      Contents.add("");
-    }
-    return Contents;
   }
 
   private ArrayList<String> GetStageFunctionalityVHDL(int StageNumber, int NrOfBits) {
