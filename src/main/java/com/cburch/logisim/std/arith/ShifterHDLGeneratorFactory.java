@@ -127,7 +127,7 @@ public class ShifterHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
       Contents.add("   assign Result = (ShifterMode == 0) ? DataA << ShiftAmount :");
       Contents.add("                   (ShifterMode == 1) ? left_rotate[" + Integer.toString(2*nrOfBits-1) + ":" + Integer.toString(nrOfBits) + "] :");
       Contents.add("                   (ShifterMode == 2) ? DataA >> ShiftAmount :");
-      Contents.add("                   (ShifterMode == 3) ? DataA >>> ShiftAmount :");
+      Contents.add("                   (ShifterMode == 3) ? (DataA >> ShiftAmount) | ({" + Integer.toString(nrOfBits) + "{DataA[" + Integer.toString(nrOfBits-1) + "]}} & ~({" + Integer.toString(nrOfBits) + "{1'b1}} >> ShiftAmount)) :");
       Contents.add("                   (ShifterMode == 4) ? right_rotate[" + Integer.toString(nrOfBits-1) + ":0] : DataA;");
     }
     return Contents;
