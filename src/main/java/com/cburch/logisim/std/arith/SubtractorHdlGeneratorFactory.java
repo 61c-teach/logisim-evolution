@@ -63,8 +63,8 @@ public class SubtractorHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
       contents.add("borrowOut <= {{not}}(s_sumresult(" + EXTENDED_BITS_STRING + "-1));");
     } else {
       contents.add("""
-          assign {s_carry,result} = dataA + ~(dataB) + ~(borrowIn);
-          assign borrowOut        = ~s_carry;
+          assign {s_carry,result} = dataA - dataB - borrowIn;
+          assign borrowOut        = s_carry;
           """);
     }
     return contents.empty();
