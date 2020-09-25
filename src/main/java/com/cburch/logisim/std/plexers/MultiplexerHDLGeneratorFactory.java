@@ -31,7 +31,7 @@ package com.cburch.logisim.std.plexers;
 import com.cburch.logisim.data.AttributeSet;
 import com.cburch.logisim.fpga.designrulecheck.Netlist;
 import com.cburch.logisim.fpga.designrulecheck.NetlistComponent;
-import com.cburch.logisim.fpga.fpgagui.FPGAReport;
+import com.cburch.logisim.fpga.gui.FPGAReport;
 import com.cburch.logisim.fpga.hdlgenerator.AbstractHDLGeneratorFactory;
 import com.cburch.logisim.instance.StdAttr;
 import java.util.ArrayList;
@@ -96,15 +96,15 @@ public class MultiplexerHDLGeneratorFactory extends AbstractHDLGeneratorFactory 
       Contents.add("");
       Contents.add("   always @(*)");
       Contents.add("   begin");
-      Contents.add("      if (~Enable) s_selected_vector <= 0;");
+      Contents.add("      if (~Enable) s_selected_vector = 0;");
       Contents.add("      else case (Sel)");
       for (int i = 0; i < (1 << nr_of_select_bits) - 1; i++) {
         Contents.add("         " + IntToBin(i, nr_of_select_bits, HDLType) + ":");
-        Contents.add("            s_selected_vector <= MuxIn_" + Integer.toString(i) + ";");
+        Contents.add("            s_selected_vector = MuxIn_" + Integer.toString(i) + ";");
       }
       Contents.add("         default:");
       Contents.add(
-          "            s_selected_vector <= MuxIn_"
+          "            s_selected_vector = MuxIn_"
               + Integer.toString((1 << nr_of_select_bits) - 1)
               + ";");
       Contents.add("      endcase");
@@ -141,8 +141,10 @@ public class MultiplexerHDLGeneratorFactory extends AbstractHDLGeneratorFactory 
 
   @Override
   public SortedMap<String, String> GetPortMap(
-      Netlist Nets, NetlistComponent ComponentInfo, FPGAReport Reporter, String HDLType) {
+      Netlist Nets, Object MapInfo, FPGAReport Reporter, String HDLType) {
     SortedMap<String, String> PortMap = new TreeMap<String, String>();
+    if (!(MapInfo instanceof NetlistComponent)) return PortMap;
+    NetlistComponent ComponentInfo = (NetlistComponent) MapInfo;
     int nr_of_select_bits =
         ComponentInfo.GetComponent().getAttributeSet().getValue(Plexers.ATTR_SELECT).getWidth();
     int select_input_index = (1 << nr_of_select_bits);
