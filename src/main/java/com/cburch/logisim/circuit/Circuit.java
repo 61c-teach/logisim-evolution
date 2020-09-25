@@ -423,6 +423,10 @@ public class Circuit {
     /* Now annotate all circuits below me */
     for (String subs : Subcircuits) {
       Circuit circ = LibraryTools.getCircuitFromLibs(proj.getLogisimFile(), subs.toUpperCase());
+      /* Handle command line annotation, project won't be set for all sub-circuits */
+      if (circ.proj == null) {
+        circ.SetProject(proj);
+      }
       boolean inLibrary = !proj.getLogisimFile().getCircuits().contains(circ);
       circ.Annotate(ClearExistingLabels, reporter, inLibrary);
     }

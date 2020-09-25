@@ -37,6 +37,7 @@ import com.cburch.logisim.file.Loader;
 import com.cburch.logisim.fpga.download.Download;
 import com.cburch.logisim.fpga.file.BoardReaderClass;
 import com.cburch.logisim.fpga.gui.FPGAReport;
+import com.cburch.logisim.fpga.hdlgenerator.HDLGeneratorFactory;
 import com.cburch.logisim.gui.generic.CanvasPane;
 import com.cburch.logisim.gui.generic.OptionPane;
 import com.cburch.logisim.gui.icons.ErrorIcon;
@@ -139,6 +140,9 @@ public class Startup implements AWTEventListener {
   private String testCircuitImpMapFile = null;
   /* Indicate if only the HDL should be generated */
   private Boolean testCircuitHdlOnly = false;
+  /* Annotation for HDL generation */
+  private Boolean annotateCircuit = false;
+  private Boolean forceDownload = false;
   /* Testing Xml (circ file) Variable */
   private String testCircPathInput = null;
   private String testCircPathOutput = null;
@@ -424,8 +428,12 @@ public class Startup implements AWTEventListener {
             }
             if (i < args.length) {
               if (!args[i].startsWith("-")) {
-                if (args[i].equalsIgnoreCase("HDLONLY")) ret.testCircuitHdlOnly = true;
-                else printUsage();
+                for (String extraFlag : args[i].split(",")) {
+                  if (extraFlag.equalsIgnoreCase("HDLONLY")) ret.testCircuitHdlOnly = true;
+                  else if (extraFlag.equalsIgnoreCase("ANNOTATE")) ret.annotateCircuit = true;
+                  else if (extraFlag.equalsIgnoreCase("FORCEDOWNLOAD")) ret.forceDownload = true;
+                  else printUsage();
+                }
               } else i--;
             }
           } else i--;
@@ -482,6 +490,27 @@ public class Startup implements AWTEventListener {
           AppPreferences.QUESTA_VALIDATION.setBoolean(false);
         } else {
           logger.error("{}", S.get("argQuestaOptionError"));
+          System.exit(-1);
+        }
+      } else if (arg.equals("-set-fpga-workspace")) {
+        i++;
+        if (i >= args.length) {
+          printUsage();
+        }
+        AppPreferences.FPGA_Workspace.set(args[i]);
+      } else if (arg.equals("-set-hdl")) {
+        i++;
+        if (i >= args.length) {
+          printUsage();
+        }
+        String a = args[i];
+        if (a.toUpperCase().equals("VERILOG")) {
+          AppPreferences.HDL_Type.set(HDLGeneratorFactory.VERILOG);
+        } else if (a.toUpperCase().equals("VHDL")) {
+          AppPreferences.HDL_Type.set(HDLGeneratorFactory.VHDL);
+        } else {
+          //TODO: add valid error code in S.get
+          logger.error("{}", "Unexpected argument to -set-hdl flag");
           System.exit(-1);
         }
       } else if (arg.charAt(0) == '-') {
@@ -850,6 +879,10 @@ public class Startup implements AWTEventListener {
             false,
             false,
             testCircuitHdlOnly);
+    Downloader.setForceDownload(forceDownload);
+    if (annotateCircuit) {
+      Downloader.annotateCircuit(false);
+    }
     return Downloader.runtty();
   }
 
