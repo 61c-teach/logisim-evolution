@@ -401,6 +401,9 @@ public class Circuit {
     /* Now annotate all circuits below me */
     for (final var subs : subCircuits) {
       final var circ = LibraryTools.getCircuitFromLibs(proj.getLogisimFile(), subs.toUpperCase());
+      if (circ.proj == null) {
+        circ.setProject(proj);
+      }
       final var inLibrary = !proj.getLogisimFile().getCircuits().contains(circ);
       circ.annotate(proj, clearExistingLabels, inLibrary);
     }

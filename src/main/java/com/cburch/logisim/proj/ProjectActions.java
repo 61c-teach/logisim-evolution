@@ -238,7 +238,7 @@ public final class ProjectActions {
     baseProject.doAction(LogisimFileActions.mergeFile(mergelib, baseProject.getLogisimFile()));
   }
 
-  private static void updatecircs(LogisimFile lib, Project proj) {
+  public static void updatecircs(LogisimFile lib, Project proj) {
     for (final var circ : lib.getCircuits()) {
       circ.setProject(proj);
     }
