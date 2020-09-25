@@ -13,6 +13,7 @@ import static com.cburch.logisim.fpga.Strings.S;
 
 import com.cburch.contracts.BaseWindowListenerContract;
 import com.cburch.logisim.Main;
+import com.cburch.logisim.circuit.Circuit;
 import com.cburch.logisim.fpga.data.BoardInformation;
 import com.cburch.logisim.fpga.data.ComponentMapParser;
 import com.cburch.logisim.fpga.gui.ComponentMapDialog;
@@ -21,6 +22,8 @@ import com.cburch.logisim.fpga.settings.VendorSoftware;
 import com.cburch.logisim.gui.generic.OptionPane;
 import com.cburch.logisim.prefs.AppPreferences;
 import com.cburch.logisim.proj.Project;
+import com.cburch.logisim.proj.ProjectActions;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -55,6 +58,9 @@ public class Download extends DownloadBase implements Runnable, BaseWindowListen
   private JFrame parent;
 
   private final ArrayList<ActionListener> listeners = new ArrayList<>();
+
+  /* Force download through commandline */
+  private boolean forceDownload = false;
 
   public Download(
       Project myProject,
@@ -166,6 +172,10 @@ public class Download extends DownloadBase implements Runnable, BaseWindowListen
     }
   }
 
+  public void setForceDownload(boolean forceDownload) {
+    this.forceDownload = forceDownload;
+  }
+
   public void doDownload() {
     new Thread(this).start();
   }
@@ -210,17 +220,29 @@ public class Download extends DownloadBase implements Runnable, BaseWindowListen
     fireEvent(new ActionEvent(this, 1, "DownloadDone"));
   }
 
-  public boolean runTty() {
-    final var root = myProject.getLogisimFile().getCircuit(topLevelSheet);
+  public void annotateCircuit(boolean clearExistingLabels) {
+    Circuit root = myProject.getLogisimFile().getCircuit(topLevelSheet);
     if (root != null) {
-      root.annotate(myProject, false, false);
-    } else {
-      Reporter.report.addFatalError("Toplevel sheet \"" + topLevelSheet + "\" not found in project!");
-      return false;
+      ProjectActions.updatecircs(myProject.getLogisimFile(), myProject);
+      if (clearExistingLabels) {
+        root.clearAnnotationLevel();
+      }
+      root.annotate(clearExistingLabels, false);
+      Reporter.report.addInfo(S.get("FpgaGuiAnnotationDone"));
     }
-    if (!prepareDownload()) return false;
-    if (generateHdlOnly) return true;
-    if (!isVendorSoftwarePresent()) return false;
+  }
+
+    public boolean runTty() {
+      final var root = myProject.getLogisimFile().getCircuit(topLevelSheet);
+      if (root != null) {
+        root.annotate(myProject, false, false);
+      } else {
+        Reporter.report.addFatalError("Toplevel sheet \"" + topLevelSheet + "\" not found in project!");
+        return false;
+      }
+      if (!prepareDownload()) return false;
+      if (generateHdlOnly) return true;
+      if (!isVendorSoftwarePresent()) return false;
     try {
       var error = download();
       if (error != null) {
@@ -360,7 +382,7 @@ public class Download extends DownloadBase implements Runnable, BaseWindowListen
         cmp.parseFile();
       }
     }
-    if (!mapDesignCheckIOs()) {
+    if (!mapDesignCheckIOs() && !forceDownload) {
       Reporter.report.addError(S.get("FPGAMapNotComplete", myBoardInformation.getBoardName()));
       return false;
     }

@@ -16,6 +16,7 @@ import com.cburch.logisim.file.LoadFailedException;
 import com.cburch.logisim.file.Loader;
 import com.cburch.logisim.fpga.download.Download;
 import com.cburch.logisim.fpga.file.BoardReaderClass;
+import com.cburch.logisim.fpga.hdlgenerator.HdlGeneratorFactory;
 import com.cburch.logisim.generated.BuildInfo;
 import com.cburch.logisim.gui.generic.CanvasPane;
 import com.cburch.logisim.gui.generic.OptionPane;
@@ -114,6 +115,9 @@ public class Startup implements AWTEventListener {
   private final String testCircuitImpMapFile = null;
   /* Indicate if only the HDL should be generated */
   private Boolean testCircuitHdlOnly = false;
+  /* Annotation for HDL generation */
+  private Boolean annotateCircuit = false;
+  private Boolean forceDownload = false;
   /* Testing Xml (circ file) Variable */
   private String testCircPathInput = null;
   private String testCircPathOutput = null;
@@ -162,6 +166,8 @@ public class Startup implements AWTEventListener {
   private static final String ARG_VERSION_LONG = "version";
   private static final String ARG_TEST_VECTOR_SHORT = "w";
   private static final String ARG_TEST_VECTOR_LONG = "test-vector";
+  private static final String ARG_FPGA_HDL = "fpga-hdl";
+  private static final String ARG_FPGA_WORKSPACE = "fpga-workspace";
   private static final String ARG_NO_SPLASH_LONG = "no-splash";
   private static final String ARG_MAIN_CIRCUIT = "toplevel-circuit";
 
@@ -311,6 +317,8 @@ public class Startup implements AWTEventListener {
     // It is assumed that evey option always has long-form switch. Short forms are optional.
     addOption(opts, "argTtyOption", ARG_TTY_LONG, ARG_TTY_SHORT, 1);
     addOption(opts, "argTestImplement", ARG_TEST_FGPA_LONG, ARG_TEST_FGPA_SHORT, Option.UNLIMITED_VALUES);  // We can have 3, 4 or 5 arguments here
+    addOption(opts, "argFpgaHdl", ARG_FPGA_HDL, 1);
+    addOption(opts, "argFpgaWorkspace", ARG_FPGA_WORKSPACE, 1);
     addOption(opts, "argClearOption", ARG_CLEAR_PREFS_LONG);
     addOption(opts, "argSubOption", ARG_SUBSTITUTE_LONG, ARG_SUBSTITUTE_SHORT, 2);
     addOption(opts, "argLoadOption", ARG_LOAD_LONG, ARG_LOAD_SHORT, 1);
@@ -384,6 +392,8 @@ public class Startup implements AWTEventListener {
         case ARG_LOCALE_LONG -> handleArgLocale(startup, opt);
         case ARG_TEMPLATE_LONG -> handleArgTemplate(startup, opt);
         case ARG_NO_SPLASH_LONG -> handleArgNoSplash(startup, opt);
+        case ARG_FPGA_WORKSPACE -> handleArgFpgaWorkspace(startup, opt);
+        case ARG_FPGA_HDL -> handleArgFpgaHdl(startup, opt);
         case ARG_TEST_VECTOR_LONG -> handleArgTestVector(startup, opt);
         case ARG_TEST_FGPA_LONG -> handleArgTestFpga(startup, opt);
         case ARG_TEST_CIRCUIT_LONG -> handleArgTestCircuit(startup, opt);
@@ -604,6 +614,23 @@ public class Startup implements AWTEventListener {
     return RC.OK;
   }
 
+  private static RC handleArgFpgaWorkspace(Startup startup, Option opt) {
+    AppPreferences.FPGA_Workspace.set(opt.getValue());
+    return RC.OK;
+  }
+
+  private static RC handleArgFpgaHdl(Startup startup, Option opt) {
+    if (opt.getValue().toUpperCase().equals("VERILOG")) {
+      AppPreferences.HdlType.set(HdlGeneratorFactory.VERILOG);
+    } else if (opt.getValue().toUpperCase().equals("VHDL")) {
+      AppPreferences.HdlType.set(HdlGeneratorFactory.VHDL);
+    } else {
+      logger.error("Unexpected argument to --fpga-hdl flag, must be VERILOG or VHDL");
+      return RC.QUIT;
+    }
+    return RC.OK;
+  }
+
   private static RC handleArgTestVector(Startup startup, Option opt) {
     startup.circuitToTest = opt.getValues()[0];
     startup.testVector = opt.getValues()[1];
@@ -620,15 +647,12 @@ public class Startup implements AWTEventListener {
 
 
   /**
-   * Handles 4th argument of `--test-fpga` argument which can be either string literal
+   * Handles 4th and later  argument of `--test-fpga` argument which can be either string literal
    * or tick frequency.
    *
-   * Supported argument formats for `--test-fpga`:<br /><br />
+   * Supported argument formats for `--test-fpga` (optional arguments can be in any order):<br /><br />
    * * circ_file name board<br />
-   * * circ_file name board [HDLONLY]<br />
-   * * circ_file name board [HDLONLY] [tick frequency]<br />
-   * * circ_file name board [tick_freq]<br />
-   * * circ_file name board [tick_freq] [HDLONLY]<br />
+   * * circ_file name board [HDLONLY] [ANNOTATE] [FORCEDOWNLOAD] [tick frequency]<br />
    * <br />
    * where:
    * <br /><br />
@@ -637,12 +661,20 @@ public class Startup implements AWTEventListener {
    * * `board` is connected FPGA board name.<br />
    * * `tick_freq` is optional tick frequency.<br />
    * * `HDLONLY` (literal), uses HDL only.<br />
+   * * `ANNOTATE` (literal), annotates circuit.<br />
+   * * `FORCEDOWNLOAD` (literal), downloads without opening a GUI interface.<br />
    */
   private static RC handleArgTestFpgaParseArg(Startup startup, String argVal) {
     if ("HDLONLY".equals(argVal)) {
-      if (!testFpgaFlagTickFreqSet) {
-        startup.testCircuitHdlOnly = true;
-      }
+      startup.testCircuitHdlOnly = true;
+      return RC.OK;
+    }
+    if ("ANNOTATE".equals(argVal)) {
+        startup.annotateCircuit = true;
+      return RC.OK;
+    }
+    if ("FORCEDOWNLOAD".equals(argVal)) {
+      startup.forceDownload = true;
       return RC.OK;
     }
 
@@ -674,7 +706,7 @@ public class Startup implements AWTEventListener {
     }
 
     final var argsCnt = optArgs.length;
-    if (argsCnt < 3 || argsCnt > 5) {
+    if (argsCnt < 3 || argsCnt > 7) {
       logger.error(S.get("argTestInvalidArguments"));
       return RC.QUIT;
     }
@@ -685,12 +717,8 @@ public class Startup implements AWTEventListener {
     startup.testCircuitImpBoard = optArgs[2];
 
     var handlerRc = RC.OK;
-    if (argsCnt >= 4) {
-      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[3]);
-      if (handlerRc == RC.QUIT) return handlerRc;
-    }
-    if (argsCnt >= 5) {
-      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[4]);
+    for (int i = 3; i < argsCnt; i++) {
+      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[i]);
       if (handlerRc == RC.QUIT) return handlerRc;
     }
 
@@ -802,6 +830,10 @@ public class Startup implements AWTEventListener {
             false,
             false,
             testCircuitHdlOnly);
+    downloader.setForceDownload(forceDownload);
+    if (annotateCircuit) {
+      downloader.annotateCircuit(false);
+    }
     return downloader.runTty();
   }
 
