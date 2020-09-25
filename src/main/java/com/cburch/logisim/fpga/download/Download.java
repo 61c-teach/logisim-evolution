@@ -79,6 +79,9 @@ public class Download extends DownloadBase implements Runnable, WindowListener {
   
   private ArrayList<ActionListener> Listeners = new ArrayList<ActionListener>();
 
+  /* Force download through commandline */
+  private boolean forceDownload = false;
+
   public Download(
 	      Project MyProject,
 	      String TopLevelSheet,
@@ -179,6 +182,10 @@ public class Download extends DownloadBase implements Runnable, WindowListener {
       MyProgress.setString(S.get("FpgaDownloadInfo"));
     }
   }
+
+  public void setForceDownload(boolean forceDownload) {
+    this.forceDownload = forceDownload;
+  }
   
   public void DoDownload() {
     new Thread(this).start();
@@ -222,6 +229,18 @@ public class Download extends DownloadBase implements Runnable, WindowListener {
       }
     }
     fireEvent(new ActionEvent(this, 1, "DownloadDone"));
+  }
+
+  public void annotateCircuit(boolean ClearExistingLabels) {
+    Circuit root = MyProject.getLogisimFile().getCircuit(TopLevelSheet);
+    if (root != null) {
+      root.SetProject(MyProject);
+      if (ClearExistingLabels) {
+        root.ClearAnnotationLevel();
+      }
+      root.Annotate(ClearExistingLabels, MyReporter, false);
+      MyReporter.AddInfo(S.get("FpgaGuiAnnotationDone"));
+    }
   }
 
   public boolean runtty() {
@@ -370,7 +389,7 @@ public class Download extends DownloadBase implements Runnable, WindowListener {
         cmp.parseFile();
       }
     }
-    if (!MapDesignCheckIOs()) {
+    if (!MapDesignCheckIOs() && !forceDownload) {
       MyReporter.AddError(S.fmt("FPGAMapNotComplete", MyBoardInformation.getBoardName()));
       return false;
     }
