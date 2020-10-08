@@ -466,12 +466,12 @@ public class Value {
     long value = toLongValue();
     if (signed) {
       if (width < 64 && (value >> (width - 1)) != 0) {
-        value |= (-1) << width;
+        value |= -1L << width;
       }
       return Long.toString(value);
     } else {
       if (width < 64) {
-        long mask = (-1 << width)^0xFFFFFFFFFFFFFFFFL;
+        long mask = (-1L << width) ^ 0xFFFFFFFFFFFFFFFFL;
         value &= mask;
       }
       return Long.toUnsignedString(value);
