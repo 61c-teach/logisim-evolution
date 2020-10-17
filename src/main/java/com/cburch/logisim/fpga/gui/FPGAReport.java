@@ -69,6 +69,7 @@ public class FPGAReport {
   public void AddError(Object Message) {
     if (Main.headless) {
       if (Message instanceof String) logger.error((String) Message);
+      if (Message instanceof SimpleDRCContainer) logger.error(Message.toString());
     } else {
       if (Message instanceof String)
         myCommander.AddErrors(new SimpleDRCContainer(Message, SimpleDRCContainer.LEVEL_NORMAL));
