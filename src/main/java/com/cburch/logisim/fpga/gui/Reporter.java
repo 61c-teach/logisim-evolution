@@ -43,6 +43,7 @@ public class Reporter {
   public void addError(Object message) {
     if (myCommander == null) {
       if (message instanceof String msg) logger.error(msg);
+      if (message instanceof SimpleDrcContainer) logger.error(message.toString());
     } else {
       myCommander.addErrors((message instanceof String)
           ? new SimpleDrcContainer(message, SimpleDrcContainer.LEVEL_NORMAL)
