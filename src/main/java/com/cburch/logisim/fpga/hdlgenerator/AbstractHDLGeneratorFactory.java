@@ -727,10 +727,10 @@ public class AbstractHDLGeneratorFactory implements HDLGeneratorFactory {
             for (int vectorentries = 0; vectorentries < VectorList.length; vectorentries++) {
               String Entry = VectorList[vectorentries];
               if (Entry.contains("{")) {
-                Entry.replaceAll("{", "");
+                Entry.replaceAll("\\{", "");
               }
               if (Entry.contains("}")) {
-                Entry.replaceAll("}", "");
+                Entry.replaceAll("\\}", "");
               }
               OneLine.append(Entry);
               if (vectorentries < VectorList.length - 1) {
@@ -970,7 +970,7 @@ public class AbstractHDLGeneratorFactory implements HDLGeneratorFactory {
             /* Finally we can put all together */
             StringBuffer Vector = new StringBuffer();
             Vector.append("{");
-            for (int i = NrOfBits; i > 0; i++) {
+            for (int i = NrOfBits; i > 0; i--) {
               Vector.append(SeperateSignals.get(i - 1));
               if (i != 1) {
                 Vector.append(",");
