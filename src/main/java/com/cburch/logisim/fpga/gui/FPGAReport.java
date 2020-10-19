@@ -69,7 +69,7 @@ public class FPGAReport {
   public void AddError(Object Message) {
     if (Main.headless) {
       if (Message instanceof String) logger.error((String) Message);
-      if (Message instanceof SimpleDRCContainer) logger.error(Message.toString());
+      if (Message instanceof SimpleDRCContainer) logger.error(((SimpleDRCContainer) Message).GetCircuit().getName() + ": " + Message.toString());
     } else {
       if (Message instanceof String)
         myCommander.AddErrors(new SimpleDRCContainer(Message, SimpleDRCContainer.LEVEL_NORMAL));
@@ -115,6 +115,7 @@ public class FPGAReport {
   public void AddWarning(Object Message) {
     if (Main.headless) {
       if (Message instanceof String) logger.warn((String) Message);
+      if (Message instanceof SimpleDRCContainer) logger.warn(Message.toString());
     } else {
       if (Message instanceof String)
         myCommander.AddWarning(new SimpleDRCContainer(Message, SimpleDRCContainer.LEVEL_NORMAL));
