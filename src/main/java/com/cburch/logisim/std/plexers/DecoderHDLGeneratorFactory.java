@@ -70,7 +70,7 @@ public class DecoderHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
             "   assign DecoderOut_"
                 + Integer.toString(i)
                 + Space
-                + " = (Enable&(sel == "
+                + " = (Enable&(Sel == "
                 + binValue
                 + ")) ? 1'b1 : 1'b0;");
       }
