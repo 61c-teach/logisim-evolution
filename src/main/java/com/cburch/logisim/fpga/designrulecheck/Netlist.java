@@ -753,7 +753,7 @@ public class Netlist {
         final var searchIter = mySplitters.listIterator(mySplitters.indexOf(thisSplitter) + 1);
         while (searchIter.hasNext() && !dupeFound) {
           final var SearchSplitter = searchIter.next();
-          if (SearchSplitter.getLocation().equals(thisSplitter.getLocation())) {
+          if (SearchSplitter.getLocation().equals(thisSplitter.getLocation()) && SearchSplitter.getEnds().size() == thisSplitter.getEnds().size()) {
             dupeFound = true;
             for (var i = 0; i < SearchSplitter.getEnds().size(); i++) {
               if (!SearchSplitter.getEnd(i)
@@ -908,7 +908,8 @@ public class Netlist {
       }
       if (rootNet < 0) {
         Reporter.report.addFatalErrorFmt(
-            "BUG: Splitter without a bus connection\n ==> %s:%d\n",
+            "%s: BUG: Splitter without a bus connection\n ==> %s:%d\n",
+            myCircuit.getName(),
             this.getClass().getName().replace(".", "/"),
             Thread.currentThread().getStackTrace()[2].getLineNumber());
         this.clear();

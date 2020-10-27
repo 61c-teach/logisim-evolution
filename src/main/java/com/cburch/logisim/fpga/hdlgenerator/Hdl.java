@@ -273,7 +273,7 @@ public class Hdl {
       }
     } else {
       contents.append(nrOfBits).append("'d");
-      contents.append(floatingPinTiedToGround ? "0" : "-1");
+      contents.append(floatingPinTiedToGround ? "0" : "x");
     }
     return contents.toString();
   }
