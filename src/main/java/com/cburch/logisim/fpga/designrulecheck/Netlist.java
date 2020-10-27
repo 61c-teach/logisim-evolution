@@ -907,7 +907,7 @@ public class Netlist implements CircuitListener {
             MyComplexSplitters.listIterator(MyComplexSplitters.indexOf(ThisSplitter) + 1);
         while (SearchIterator.hasNext() && !FoundDuplicate) {
           Component SearchSplitter = SearchIterator.next();
-          if (SearchSplitter.getLocation().equals(ThisSplitter.getLocation())) {
+          if (SearchSplitter.getLocation().equals(ThisSplitter.getLocation()) && SearchSplitter.getEnds().size() == ThisSplitter.getEnds().size()) {
             FoundDuplicate = true;
             for (int i = 0; i < SearchSplitter.getEnds().size(); i++) {
               if (!SearchSplitter.getEnd(i)
@@ -1074,7 +1074,7 @@ public class Netlist implements CircuitListener {
       }
       if (RootNet < 0) {
         Reporter.AddFatalError(
-            "BUG: Splitter without a bus connection\n ==> "
+            MyCircuit.getName() + ": BUG: Splitter without a bus connection\n ==> "
                 + this.getClass().getName().replaceAll("\\.", "/")
                 + ":"
                 + Thread.currentThread().getStackTrace()[2].getLineNumber()

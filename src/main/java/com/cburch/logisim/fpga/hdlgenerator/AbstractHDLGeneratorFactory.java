@@ -1345,7 +1345,7 @@ public class AbstractHDLGeneratorFactory implements HDLGeneratorFactory {
       if (FloatingPinTiedToGround) {
         Contents.append("0");
       } else {
-        Contents.append("-1");
+        Contents.append("x");
       }
     }
     return Contents.toString();
