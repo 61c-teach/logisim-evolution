@@ -487,7 +487,7 @@ public class AbstractHDLGeneratorFactory implements HDLGeneratorFactory {
             if (HDLType.equals(HDLGeneratorFactory.VHDL)) {
               Contents.append("OPEN");
             } else {
-              Contents.append("'bz");
+              Contents.append("OPEN");
             }
           } else {
             Contents.append(
