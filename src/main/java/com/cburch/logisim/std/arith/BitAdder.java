@@ -32,6 +32,14 @@ import com.cburch.logisim.util.GraphicsUtil;
 import java.awt.Graphics;
 
 public class BitAdder extends InstanceFactory {
+
+  public static int computeOutputBits(int width, int inputs) {
+    int maxBits = width * inputs;
+    int outWidth = 1;
+    while ((1 << outWidth) <= maxBits) outWidth++;
+    return outWidth;
+  }
+
   /**
    * Unique identifier of the tool, used as reference in project files.
    * Do NOT change as it will prevent project files from loading.
@@ -43,8 +51,10 @@ public class BitAdder extends InstanceFactory {
   static final Attribute<Integer> NUM_INPUTS =
       Attributes.forIntegerRange("inputs", S.getter("gateInputsAttr"), 1, 64);
 
+  public static final int OUT = 0;
+
   public BitAdder() {
-    super(_ID, S.getter("bitAdderComponent"));
+    super(_ID, S.getter("bitAdderComponent"), new BitAdderHdlGeneratorFactory());
     setAttributes(
         new Attribute[] {StdAttr.WIDTH, NUM_INPUTS},
         new Object[] {BitWidth.create(8), 1});
@@ -53,13 +63,6 @@ public class BitAdder extends InstanceFactory {
             new IntegerConfigurator(NUM_INPUTS, 1, 64, 0),
             new BitWidthConfigurator(StdAttr.WIDTH)));
     setIcon(new ArithmeticIcon("#"));
-  }
-
-  private int computeOutputBits(int width, int inputs) {
-    int maxBits = width * inputs;
-    int outWidth = 1;
-    while ((1 << outWidth) <= maxBits) outWidth++;
-    return outWidth;
   }
 
   @Override
@@ -106,6 +109,11 @@ public class BitAdder extends InstanceFactory {
     int h = Math.max(40, 10 * inputs);
     int y = inputs < 4 ? 20 : (((inputs - 1) / 2) * 10 + 5);
     return Bounds.create(-40, -y, 40, h);
+  }
+
+  @Override
+  public String getHDLName(AttributeSet attrs) {
+    return "BitAdder_" + attrs.getValue(NUM_INPUTS) + "_" + attrs.getValue(StdAttr.WIDTH).getWidth() + "_bit";
   }
 
   @Override
