@@ -120,6 +120,19 @@ public class BitAdder extends InstanceFactory {
   }
 
   @Override
+  public String getHDLName(AttributeSet attrs) {
+    StringBuffer CompleteName = new StringBuffer();
+    CompleteName.append("BitAdder_" + attrs.getValue(NUM_INPUTS).intValue() +"_" + attrs.getValue(StdAttr.WIDTH).getWidth() + "_bit");
+    return CompleteName.toString();
+  }
+
+  @Override
+  public boolean HDLSupportedComponent(String HDLIdentifier, AttributeSet attrs) {
+    if (MyHDLGenerator == null) MyHDLGenerator = new BitAdderHDLGeneratorFactory();
+    return MyHDLGenerator.HDLTargetSupported(HDLIdentifier, attrs);
+  }
+
+  @Override
   protected void instanceAttributeChanged(Instance instance, Attribute<?> attr) {
     if (attr == StdAttr.WIDTH) {
       configurePorts(instance);
