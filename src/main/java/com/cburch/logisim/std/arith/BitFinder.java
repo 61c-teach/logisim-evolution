@@ -116,6 +116,19 @@ public class BitFinder extends InstanceFactory {
   }
 
   @Override
+  public String getHDLName(AttributeSet attrs) {
+    StringBuffer CompleteName = new StringBuffer();
+    CompleteName.append("BitFinder_" + attrs.getValue(StdAttr.WIDTH).getWidth() + "_bit");
+    return CompleteName.toString();
+  }
+
+  @Override
+  public boolean HDLSupportedComponent(String HDLIdentifier, AttributeSet attrs) {
+    if (MyHDLGenerator == null) MyHDLGenerator = new BitFinderHDLGeneratorFactory();
+    return MyHDLGenerator.HDLTargetSupported(HDLIdentifier, attrs);
+  }
+
+  @Override
   protected void instanceAttributeChanged(Instance instance, Attribute<?> attr) {
     if (attr == StdAttr.WIDTH) {
       configurePorts(instance);
