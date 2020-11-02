@@ -27,9 +27,12 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
 
   private static String bits(char[] b) {
     final var s = new StringBuilder();
-    for (final var c : b) s.insert(0, ((c == '0' || c == '1') ? c : '-'));
-    if (b.length == 1) return "'" + s + "'";
-    else return "\"" + s + "\"";
+    for (final var c : b) s.insert(0, ((c == '0' || c == '1') ? c : Hdl.wildcard()));
+    if (Hdl.isVerilog()) return s.toString();
+    else {
+      if (b.length == 1) return "'" + s + "'";
+      else return "\"" + s + "\"";
+    }
   }
 
   private static String zeros(int sz) {
@@ -43,6 +46,7 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
   public LineBuffer getModuleFunctionality(Netlist nets, AttributeSet attrs) {
     final var contents = LineBuffer.getHdlBuffer().addVhdlKeywords().empty();
     final var tt = attrs.getValue(Pla.ATTR_TABLE);
+    final var inSz = attrs.getValue(Pla.ATTR_IN_WIDTH).getWidth();
     final var outSz = attrs.getValue(Pla.ATTR_OUT_WIDTH).getWidth();
     if (Hdl.isVhdl()) {
       var leader = "result <= ";
@@ -58,13 +62,25 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
         contents.add("{{1}}{{2}};", leader, zeros(outSz));
       }
     } else {
-      // TODO
+      contents.add("reg [{{1}}:0] temp;", outSz-1);
+      contents.add("always @(*) begin");
+      if (tt.rows().isEmpty()) {
+        contents.add("   temp = {{1}};", Hdl.getZeroVector(outSz, true));
+      } else {
+        String leader = "   if ";
+        for (PlaTable.Row r : tt.rows()) {
+          contents.add(leader + "(index ==? {{1}}'b{{2}}) begin", inSz, bits(r.inBits));
+          contents.add("      temp = {{1}}'b{{2}};", outSz, bits(r.outBits));
+          contents.add("   end");
+          leader = "   else if ";
+        }
+        contents.add("   else begin");
+        contents.add("      temp = {{1}};", outSz, Hdl.getZeroVector(outSz, true));
+        contents.add("   end");
+      }
+      contents.add("end");
+      contents.add("assign result = temp;");
     }
     return contents.empty();
-  }
-
-  @Override
-  public boolean isHdlSupportedTarget(AttributeSet attrs) {
-    return Hdl.isVhdl();
   }
 }

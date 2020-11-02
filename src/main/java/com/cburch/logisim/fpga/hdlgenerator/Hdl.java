@@ -238,6 +238,10 @@ public class Hdl {
     return isVhdl() ? Vhdl.getVhdlKeyword("OPEN") : empty ? "" : "'bz";
   }
 
+  public static char wildcard() {
+    return isVhdl() ? '-' : '?';
+  }
+
   public static String vectorLoopId() {
     return isVhdl() ? Vhdl.getVhdlKeyword(" DOWNTO ") : ":";
   }
