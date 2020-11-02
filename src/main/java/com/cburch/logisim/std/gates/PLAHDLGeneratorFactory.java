@@ -33,6 +33,9 @@ import com.cburch.logisim.fpga.designrulecheck.Netlist;
 import com.cburch.logisim.fpga.designrulecheck.NetlistComponent;
 import com.cburch.logisim.fpga.gui.FPGAReport;
 import com.cburch.logisim.fpga.hdlgenerator.AbstractHDLGeneratorFactory;
+import com.cburch.logisim.instance.StdAttr;
+
+import javax.swing.text.AbstractDocument;
 import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -58,6 +61,12 @@ public class PLAHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
     else return "\"" + s + "\"";
   }
 
+  private static String verilog_bits(char b[]) {
+    String s = "";
+    for (char c : b) s = ((c == '0' || c == '1') ? c : '-') + s;
+    return s;
+  }
+
   private static String zeros(int sz) {
     String s = "";
     for (int i = 0; i < sz; i++) s += '0';
@@ -65,11 +74,18 @@ public class PLAHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
     else return "\"" + s + "\"";
   }
 
+  private static String verilog_zeros(int sz) {
+    String s = "";
+    for (int i = 0; i < sz; i++) s += '0';
+    return s;
+  }
+
   @Override
   public ArrayList<String> GetModuleFunctionality(
       Netlist TheNetlist, AttributeSet attrs, FPGAReport Reporter, String HDLType) {
     ArrayList<String> Contents = new ArrayList<>();
     PLATable tt = attrs.getValue(PLA.ATTR_TABLE);
+    int inSz = attrs.getValue(PLA.ATTR_IN_WIDTH).getWidth();
     int outSz = attrs.getValue(PLA.ATTR_OUT_WIDTH).getWidth();
     if (HDLType.equals(VHDL)) {
       String leader = "    Result <= ";
@@ -85,6 +101,25 @@ public class PLAHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
         Contents.add(leader + zeros(outSz) + ";");
       }
     } else {
+      Contents.add("");
+      Contents.add(String.format("   reg [%d:0] temp;", outSz-1));
+      Contents.add("   always @(*) begin");
+      if (tt.rows().isEmpty()) {
+        Contents.add(String.format("      temp = %d'b%s;", outSz, verilog_zeros(outSz)));
+      } else {
+        String leader = "      if ";
+        for (PLATable.Row r : tt.rows()) {
+          Contents.add(leader + String.format("(Index == %d'b%s) begin", inSz, verilog_bits(r.inBits)));
+          Contents.add(String.format("         temp = %d'b%s;", outSz, verilog_bits(r.outBits)));
+          Contents.add("      end");
+          leader = "      else if ";
+        }
+        Contents.add("      else begin");
+        Contents.add(String.format("         temp = %d'b%s;", outSz, verilog_zeros(outSz)));
+        Contents.add("      end");
+      }
+      Contents.add("   end");
+      Contents.add("   assign Result = temp;");
       // todo
     }
     return Contents;
@@ -115,6 +150,6 @@ public class PLAHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
 
   @Override
   public boolean HDLTargetSupported(String HDLType, AttributeSet attrs) {
-    return HDLType.equals(VHDL);
+    return true;
   }
 }
