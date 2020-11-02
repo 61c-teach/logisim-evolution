@@ -30,6 +30,13 @@ import com.cburch.logisim.util.GraphicsUtil;
 import java.awt.Graphics;
 
 public class BitFinder extends InstanceFactory {
+
+  public static int computeOutputBits(int maxBits) {
+    int outWidth = 1;
+    while ((1 << outWidth) <= maxBits) outWidth++;
+    return outWidth;
+  }
+
   /**
    * Unique identifier of the tool, used as reference in project files. Do NOT change as it will
    * prevent project files from loading.
@@ -52,18 +59,16 @@ public class BitFinder extends InstanceFactory {
           S.getter("bitFinderTypeAttr"),
           new AttributeOption[] {LOW_ONE, HIGH_ONE, LOW_ZERO, HIGH_ZERO});
 
+  public static final int PRESENT = 0;
+  public static final int OUT = 1;
+  public static final int IN = 2;
+
   public BitFinder() {
-    super(_ID, S.getter("bitFinderComponent"));
+    super(_ID, S.getter("bitFinderComponent"), new BitFinderHdlGeneratorFactory());
     setAttributes(
         new Attribute[] {StdAttr.WIDTH, TYPE}, new Object[] {BitWidth.create(8), LOW_ONE});
     setKeyConfigurator(new BitWidthConfigurator(StdAttr.WIDTH));
     setIcon(new ArithmeticIcon("?"));
-  }
-
-  private int computeOutputBits(int maxBits) {
-    int outWidth = 1;
-    while ((1 << outWidth) <= maxBits) outWidth++;
-    return outWidth;
   }
 
   @Override
@@ -102,6 +107,11 @@ public class BitFinder extends InstanceFactory {
   @Override
   public Bounds getOffsetBounds(AttributeSet attrs) {
     return Bounds.create(-40, -20, 40, 40);
+  }
+
+  @Override
+  public String getHDLName(AttributeSet attrs) {
+    return "BitFinder_" + attrs.getValue(StdAttr.WIDTH).getWidth() + "_bit";
   }
 
   @Override
