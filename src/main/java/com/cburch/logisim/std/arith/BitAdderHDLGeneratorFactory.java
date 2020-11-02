@@ -145,6 +145,6 @@ public class BitAdderHDLGeneratorFactory extends AbstractHDLGeneratorFactory {
 
     @Override
     public boolean HDLTargetSupported(String HDLType, AttributeSet attrs) {
-        return true;
+        return HDLType.equals(VERILOG);
     }
 }
