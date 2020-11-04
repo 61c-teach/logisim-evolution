@@ -33,7 +33,11 @@ public class BitExtenderHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
     }
     if (componentInfo.getComponent().getEnd(0).getWidth().getWidth() == 1) {
       /* Special case: Single bit output */
-      contents.add("{{assign}} {{1}} {{=}} {{2}};", Hdl.getNetName(componentInfo, 0, true, nets), Hdl.getNetName(componentInfo, 1, true, nets));
+      if (Hdl.getNetName(componentInfo, 1, true, nets).isEmpty()) {
+        contents.add("{{assign}} {{1}} {{=}} {{2}};", Hdl.getNetName(componentInfo, 0, true, nets), Hdl.getBusEntryName(componentInfo, 1, true, 0, nets));
+      } else {
+        contents.add("{{assign}} {{1}} {{=}} {{2}};", Hdl.getNetName(componentInfo, 0, true, nets), Hdl.getNetName(componentInfo, 1, true, nets));
+      }
       contents.add("");
     } else {
       /*
