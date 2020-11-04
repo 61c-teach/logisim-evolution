@@ -62,13 +62,24 @@ public class BitExtenderHDLGeneratorFactory extends AbstractHDLGeneratorFactory 
     }
     if (ComponentInfo.GetComponent().getEnd(0).getWidth().getWidth() == 1) {
       /* Special case: Single bit output */
-      Contents.add(
-          "   "
-              + Preamble
-              + GetNetName(ComponentInfo, 0, true, HDLType, Nets)
-              + AssignOperator
-              + GetNetName(ComponentInfo, 1, true, HDLType, Nets));
-      Contents.add("");
+      if (GetNetName(ComponentInfo, 1, true, HDLType, Nets).isEmpty()) {
+        Contents.add(
+                "   "
+                        + Preamble
+                        + GetNetName(ComponentInfo, 0, true, HDLType, Nets)
+                        + AssignOperator
+                        + GetBusEntryName(ComponentInfo, 1, true, 0, HDLType, Nets)
+                        + ";");
+        Contents.add("");
+      } else {
+        Contents.add(
+                "   "
+                        + Preamble
+                        + GetNetName(ComponentInfo, 0, true, HDLType, Nets)
+                        + AssignOperator
+                        + GetNetName(ComponentInfo, 1, true, HDLType, Nets));
+        Contents.add("");
+      }
     } else {
       /*
        * We make ourselves life easy, we just enumerate through all the
