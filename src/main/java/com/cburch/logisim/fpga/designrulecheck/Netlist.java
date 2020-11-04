@@ -800,6 +800,7 @@ public class Netlist implements CircuitListener {
      * Now we check if an input pin is connected to an output and in case of
      * a Splitter if it is connected to either of them
      */
+    drc.clear();
     drc.add(
         new SimpleDRCContainer(
             MyCircuit,
