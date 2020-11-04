@@ -649,8 +649,11 @@ public class Netlist {
       progress.setValue(1);
       progress.setString(S.get("NetListBuild", circuitName, 2));
     }
-    // Now we check if an input pin is connected to an output and in case of
-    // a Splitter if it is connected to either of them
+    /*
+     * Now we check if an input pin is connected to an output and in case of
+     * a Splitter if it is connected to either of them
+     */
+    drc.clear();
     drc.add(
         new SimpleDrcContainer(
             myCircuit,
