@@ -1192,9 +1192,12 @@ public class Netlist implements CircuitListener {
      * complex splitter with a forcerootnet annotation; we are going to
      * cycle trough all these nets
      */
+    HashSet<String> drivenNets = new HashSet<String>(); // Each bit of each bus can only be driven once
     for (Net thisnet : MyNets) {
+      HashSet<String> handledNets = new HashSet<String>();
       if (thisnet.IsForcedRootNet()) {
         /* Cycle through all the bits of this net */
+        //HashSet<String> handledNets = new HashSet<String>();
         for (int bit = 0; bit < thisnet.BitWidth(); bit++) {
           for (Component comp : MyComplexSplitters) {
             /*
@@ -1262,19 +1265,23 @@ public class Netlist implements CircuitListener {
                 SolderPoint.SetParrentNet(Rootbus, ConnectedBusIndex);
                 Boolean IsSink = true;
                 if (!thisnet.hasBitSource(bit)) {
-                  if (HasHiddenSource(
-                      thisnet,
-                      (byte) bit,
-                      Rootbus,
-                      ConnectedBusIndex,
-                      MyComplexSplitters,
-                      new HashSet<>())) {
+                  Boolean hasHiddenSource = HasHiddenSource( thisnet, (byte) bit, Rootbus, ConnectedBusIndex, MyComplexSplitters, handledNets);
+                  if (hasHiddenSource) {
                     IsSink = false;
                   }
                 }
+                String NetId = Integer.toString(MyNets.indexOf(thisnet)) + "-" + bit;
+                String drivenNetId = Integer.toString(MyNets.indexOf(Rootbus)) + "-" + ConnectedBusIndex;
                 if (IsSink) {
-                  thisnet.addSinkNet(bit, SolderPoint);
+                  if (drivenNets.contains(drivenNetId)) {
+                    // If the net is driven already, then it must be a source relative to use (BUG?)
+                    thisnet.addSourceNet(bit, SolderPoint);
+                  } else {
+                    drivenNets.add(drivenNetId);
+                    thisnet.addSinkNet(bit, SolderPoint);
+                  }
                 } else {
+                  drivenNets.add(NetId);
                   thisnet.addSourceNet(bit, SolderPoint);
                 }
               }
