@@ -77,7 +77,8 @@ public class BitExtenderHDLGeneratorFactory extends AbstractHDLGeneratorFactory 
                         + Preamble
                         + GetNetName(ComponentInfo, 0, true, HDLType, Nets)
                         + AssignOperator
-                        + GetNetName(ComponentInfo, 1, true, HDLType, Nets));
+                        + GetNetName(ComponentInfo, 1, true, HDLType, Nets)
+                        + ";");
         Contents.add("");
       }
     } else {
