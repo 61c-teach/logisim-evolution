@@ -1192,9 +1192,10 @@ public class Netlist implements CircuitListener {
      * complex splitter with a forcerootnet annotation; we are going to
      * cycle trough all these nets
      */
-    HashSet<String> drivenNets = new HashSet<String>(); // Each bit of each bus can only be driven once
+    /* TODO: The logic for driving nets should not be entirely based on first to drive is only to drive, there's a bug
+     *  in hidden source detection that needs addressing */
+    HashSet<String> drivenNets = new HashSet<>(); // Each bit of each bus can only be driven once
     for (Net thisnet : MyNets) {
-      HashSet<String> handledNets = new HashSet<String>();
       if (thisnet.IsForcedRootNet()) {
         /* Cycle through all the bits of this net */
         //HashSet<String> handledNets = new HashSet<String>();
@@ -1265,24 +1266,26 @@ public class Netlist implements CircuitListener {
                 SolderPoint.SetParrentNet(Rootbus, ConnectedBusIndex);
                 Boolean IsSink = true;
                 if (!thisnet.hasBitSource(bit)) {
-                  Boolean hasHiddenSource = HasHiddenSource( thisnet, (byte) bit, Rootbus, ConnectedBusIndex, MyComplexSplitters, handledNets);
+                  Boolean hasHiddenSource = HasHiddenSource( thisnet, (byte) bit, Rootbus, ConnectedBusIndex, MyComplexSplitters, new HashSet<String>());
                   if (hasHiddenSource) {
                     IsSink = false;
                   }
                 }
                 String NetId = Integer.toString(MyNets.indexOf(thisnet)) + "-" + bit;
-                String drivenNetId = Integer.toString(MyNets.indexOf(Rootbus)) + "-" + ConnectedBusIndex;
+                String rootBusId = Integer.toString(MyNets.indexOf(Rootbus)) + "-" + ConnectedBusIndex;
                 if (IsSink) {
-                  if (drivenNets.contains(drivenNetId)) {
-                    // If the net is driven already, then it must be a source relative to use (BUG?)
-                    thisnet.addSourceNet(bit, SolderPoint);
-                  } else {
-                    drivenNets.add(drivenNetId);
-                    thisnet.addSinkNet(bit, SolderPoint);
-                  }
+                  // If we add the rootBus[bit] as sink net, then that  net is now driven
+                  drivenNets.add(rootBusId);
+                  thisnet.addSinkNet(bit, SolderPoint);
                 } else {
-                  drivenNets.add(NetId);
-                  thisnet.addSourceNet(bit, SolderPoint);
+                  if (drivenNets.contains(NetId)) {
+                    // If this net is driven already, then it cannot have another source
+                    thisnet.addSinkNet(bit, SolderPoint);
+                  } else {
+                    // If we add a source to our net then it becomes driven
+                    drivenNets.add(NetId);
+                    thisnet.addSourceNet(bit, SolderPoint);
+                  }
                 }
               }
             }
