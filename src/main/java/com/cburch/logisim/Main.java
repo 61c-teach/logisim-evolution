@@ -47,37 +47,40 @@ import org.slf4j.LoggerFactory;
 public class Main {
   public static void main(String[] args) throws Exception {
     System.setProperty("apple.awt.application.name", "Logisim-evolution");
-    try {
-      if (!GraphicsEnvironment.isHeadless()) {
-        for (LookAndFeelInfo themeInfo : LafManager.getRegisteredThemeInfos()) {
-          UIManager.installLookAndFeel(themeInfo);
-        }
-        UIManager.setLookAndFeel(AppPreferences.LookAndFeel.get());
-        UIManager.put("ToolTip.font", new FontUIResource("SansSerif", Font.BOLD, AppPreferences.getScaled(12))); 
-      }
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (UnsupportedLookAndFeelException e) {
-      e.printStackTrace();
-    }
+    headless = GraphicsEnvironment.isHeadless();
+
     Startup startup = Startup.parseArgs(args);
     if (startup == null) {
       System.exit(0);
     } else {
       // If the auto-updater actually performed an update, then quit the
       // program, otherwise continue with the execution
-      if (!startup.autoUpdate()) {
+      if (!hasGui() || !startup.autoUpdate()) {
+        try {
+          if (hasGui()) {
+            for (LookAndFeelInfo themeInfo : LafManager.getRegisteredThemeInfos()) {
+              UIManager.installLookAndFeel(themeInfo);
+            }
+            UIManager.setLookAndFeel(AppPreferences.LookAndFeel.get());
+            UIManager.put("ToolTip.font", new FontUIResource("SansSerif", Font.BOLD, AppPreferences.getScaled(12)));
+          }
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+        } catch (InstantiationException e) {
+          e.printStackTrace();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+          e.printStackTrace();
+        }
         try {
           startup.run();
         } catch (Throwable e) {
           Writer result = new StringWriter();
           PrintWriter printWriter = new PrintWriter(result);
           e.printStackTrace(printWriter);
-          OptionPane.showMessageDialog(null, result.toString());
+          if (hasGui()) System.err.println(result.toString());
+          else OptionPane.showMessageDialog(null, result.toString());
           System.exit(-1);
         }
       }
