@@ -134,7 +134,7 @@ public class SoftwaresOptions extends OptionsPanel {
     c.gridy = 0;
     c.gridwidth = 3;
     c.fill = GridBagConstraints.NONE;
-    add(AutoUpdateCheckbox, c);
+    // add(AutoUpdateCheckbox, c);
 
     c.gridx = 0;
     c.gridy = 1;

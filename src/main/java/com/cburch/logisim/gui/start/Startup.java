@@ -198,15 +198,6 @@ public class Startup implements AWTEventListener {
 
     if (AppPreferences.FirstTimeStartup.getBoolean() & !isTty) {
       System.out.println("First time startup");
-      int Result =
-          OptionPane.showConfirmDialog(
-              null,
-              "Logisim can automatically check for new updates and versions.\n"
-                  + "Would you like to enable this feature?\n"
-                  + "(This feature can be disabled in Window -> Preferences -> Software)\n",
-              "Autoupdate",
-              OptionPane.YES_NO_OPTION);
-      if (Result == OptionPane.YES_OPTION) AppPreferences.AutomaticUpdateCheck.setBoolean(true);
       AppPreferences.FirstTimeStartup.set(false);
     }
 
@@ -597,7 +588,7 @@ public class Startup implements AWTEventListener {
    *     otherwise
    */
   public boolean autoUpdate() {
-    if (!AppPreferences.AutomaticUpdateCheck.getBoolean()) return false;
+    if (!AppPreferences.AutomaticUpdateCheck.getBoolean() || true) return false;
     ProgressMonitor Monitor =
         new ProgressMonitor(null, "Checking for new logisim version", "Autoupdate", 0, 4);
     Monitor.setProgress(0);
