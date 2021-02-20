@@ -68,7 +68,7 @@ public class LogisimVersion {
     var separator = "";
     var suffix = "";
 
-    var pattern = "^(\\d+.\\d+.\\d+)(.*)$";
+    var pattern = "^(\\d+\\.\\d+\\.\\d+)(.*)$";
     var m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(versionString);
     if (m.matches()) {
       final var verStr = m.group(1);
@@ -94,7 +94,7 @@ public class LogisimVersion {
           }
           suffix = sufStr;
         } else if (sufStr.length() > 1) {
-          pattern = "^(-)?([a-z][a-z\\d]*)$";
+          pattern = "^(-)?([a-z\\d](?:\\.?[a-z\\d]+)*)$";
           m = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(sufStr);
           if (!m.matches()) {
             throw new IllegalArgumentException(

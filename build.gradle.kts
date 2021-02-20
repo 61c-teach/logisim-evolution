@@ -82,10 +82,7 @@ java {
  * Setting up all shared vars and parameters.
  */
 extra.apply {
-  // NOTE: optional suffix is prefixed with `-` (because of how LogisimVersion class parses it), which
-  // I remove here because `jpackage` tool does not like it when used to build the RPM package.
-  // Do NOT use `project.version` instead.
-  val appVersion = (project.version as String).replace("-", "")
+  val appVersion = project.version as String
   set(APP_VERSION, appVersion)
   logger.info("appVersion: ${appVersion}")
 
