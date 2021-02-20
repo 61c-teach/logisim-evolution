@@ -33,8 +33,13 @@ public class Main {
    */
   public static void main(String[] args) {
     System.setProperty("apple.awt.application.name", BuildInfo.name);
+
+    final var startup = Startup.parseArgs(args);
+    if (startup == null) System.exit(10);
+    if (startup.shallQuit()) System.exit(0);
+
     try {
-      if (!GraphicsEnvironment.isHeadless()) {
+      if (hasGui()) {
         FlatLightLaf.installLafInfo();
         FlatDarkLaf.installLafInfo();
         FlatDarculaLaf.installLafInfo();
@@ -50,17 +55,14 @@ public class Main {
       e.printStackTrace();
     }
 
-    final var startup = Startup.parseArgs(args);
-    if (startup == null) System.exit(10);
-    if (startup.shallQuit()) System.exit(0);
-
     try {
       startup.run();
     } catch (Throwable e) {
       final var strWriter = new StringWriter();
       final var printWriter = new PrintWriter(strWriter);
       e.printStackTrace(printWriter);
-      OptionPane.showMessageDialog(null, strWriter.toString());
+      if (!hasGui()) System.err.println(strWriter.toString());
+      else OptionPane.showMessageDialog(null, strWriter.toString());
       System.exit(100);
     }
   }

@@ -11,6 +11,7 @@ package com.cburch.logisim.file;
 
 import static com.cburch.logisim.file.Strings.S;
 
+import com.cburch.logisim.Main;
 import com.cburch.logisim.gui.generic.OptionPane;
 import com.cburch.logisim.std.Builtin;
 import com.cburch.logisim.tools.Library;
@@ -189,6 +190,10 @@ public class Loader implements LibraryLoader {
       if (currentDirectory != null) file = new File(currentDirectory, name);
     }
     while (!file.canRead()) {
+      if (!Main.hasGui()) {
+        throw new LoaderException(
+          String.format(S.get("fileLibraryMissingError"), file.getName()));
+      }
       // It doesn't exist. Figure it out from the user.
       OptionPane.showMessageDialog(parent, String.format(S.get("fileLibraryMissingError"), file.getName()));
       final var chooser = createChooser();
