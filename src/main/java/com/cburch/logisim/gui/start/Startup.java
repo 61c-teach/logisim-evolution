@@ -122,9 +122,9 @@ public class Startup implements AWTEventListener {
   private String testCircPathInput = null;
   private String testCircPathOutput = null;
 
-  private Startup(boolean isTty) {
+  private Startup(boolean isTty, boolean hasGui) {
     this.isTty = isTty;
-    this.showSplash = !isTty;
+    this.showSplash = hasGui;
   }
 
   static void doOpen(File file) {
@@ -355,7 +355,6 @@ public class Startup implements AWTEventListener {
     } else {
       shallClearPreferences = cmd.hasOption(ARG_CLEAR_PREFS_LONG);
     }
-
     if (!isTty) {
       // we're using the GUI: Set up the Look&Feel to match the platform
       System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -364,7 +363,7 @@ public class Startup implements AWTEventListener {
     }
 
     // Initialize startup object.
-    final var startup = new Startup(isTty);
+    final var startup = new Startup(isTty, Main.hasGui());
     startupTemp = startup;
     if (!isTty) {
       MacOsAdapter.addListeners();
@@ -901,27 +900,29 @@ public class Startup implements AWTEventListener {
     if (showSplash) {
       monitor.setProgress(SplashScreen.GUI_INIT);
     }
-    WindowManagers.initialize();
-    if (MacCompatibility.isSwingUsingScreenMenuBar()) {
-      MacCompatibility.setFramelessJMenuBar(new LogisimMenuBar(null, null, null, null));
-    } else {
-      new LogisimMenuBar(null, null, null, null);
-      // most of the time occupied here will be in loading menus, which
-      // will occur eventually anyway; we might as well do it when the
-      // monitor says we are
-    }
+    if (Main.hasGui()) {
+      WindowManagers.initialize();
+      if (MacCompatibility.isSwingUsingScreenMenuBar()) {
+        MacCompatibility.setFramelessJMenuBar(new LogisimMenuBar(null, null, null, null));
+      } else {
+        new LogisimMenuBar(null, null, null, null);
+        // most of the time occupied here will be in loading menus, which
+        // will occur eventually anyway; we might as well do it when the
+        // monitor says we are
+      }
 
-    // Make ENTER and SPACE have the same effect for focused buttons.
-    UIManager.getDefaults()
-        .put(
-            "Button.focusInputMap",
-            new UIDefaults.LazyInputMap(
-                new Object[] {
-                  "ENTER", "pressed",
-                  "released ENTER", "released",
-                  "SPACE", "pressed",
-                  "released SPACE", "released"
-                }));
+      // Make ENTER and SPACE have the same effect for focused buttons.
+      UIManager.getDefaults()
+          .put(
+              "Button.focusInputMap",
+              new UIDefaults.LazyInputMap(
+                  new Object[] {
+                    "ENTER", "pressed",
+                    "released ENTER", "released",
+                    "SPACE", "pressed",
+                    "released SPACE", "released"
+                  }));
+    }
 
     // if user has double-clicked a file to open, we'll
     // use that as the file to open now.
