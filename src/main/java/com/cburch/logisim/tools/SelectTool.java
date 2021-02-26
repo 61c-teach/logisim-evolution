@@ -294,6 +294,16 @@ public class SelectTool extends Tool {
     }
   }
 
+  private boolean isSelectionMovable(Canvas canvas) {
+    for (Component comp : canvas.getSelection().getAnchoredComponents()) {
+      Boolean isLocked = comp.getAttributeSet().getValue(StdAttr.LOCKED);
+      if (isLocked != null && isLocked.booleanValue()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private void handleMoveDrag(Canvas canvas, int dx, int dy, int modsEx) {
     var connect = shouldConnect(modsEx);
     drawConnections = connect;
@@ -307,8 +317,10 @@ public class SelectTool extends Tool {
                 canvas.getSelection().getAnchoredComponents());
         moveGesture = gesture;
       }
-      if (dx != 0 || dy != 0) {
-        var queued = gesture.enqueueRequest(dx, dy);
+      if (!isSelectionMovable(canvas)) {
+          canvas.setErrorMessage(S.getter("cannotModifyError"));
+      } else if (dx != 0 || dy != 0) {
+        boolean queued = gesture.enqueueRequest(dx, dy);
         if (queued) {
           canvas.setErrorMessage(new ComputingMessage(dx, dy), COLOR_COMPUTING);
           // maybe CPU scheduled led the request to be satisfied
@@ -482,6 +494,8 @@ public class SelectTool extends Tool {
           canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else if (proj.getSelection().hasConflictWhenMoved(dx, dy)) {
           canvas.setErrorMessage(S.getter("exclusiveError"));
+        } else if (!isSelectionMovable(canvas)) {
+          canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else {
           final var connect = shouldConnect(e.getModifiersEx());
           drawConnections = false;
