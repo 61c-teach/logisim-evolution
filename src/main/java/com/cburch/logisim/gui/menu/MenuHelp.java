@@ -73,6 +73,7 @@ class MenuHelp extends JMenu implements ActionListener {
       addSeparator();
       add(about);
     }
+    disableHelp();
   }
 
   public void actionPerformed(ActionEvent e) {
