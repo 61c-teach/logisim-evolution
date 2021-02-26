@@ -96,6 +96,8 @@ public interface StdAttr {
           "appearance",
           S.getter("stdAppearanceAttr"),
           new AttributeOption[] {APPEAR_CLASSIC, APPEAR_FPGA, APPEAR_EVOLUTION});
+  Attribute<Boolean> LOCKED =
+      Attributes.forUnconfigurableBoolean("locked");
 
   Attribute<String> DUMMY = Attributes.forHidden();
 }

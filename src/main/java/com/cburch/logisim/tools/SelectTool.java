@@ -310,6 +310,16 @@ public class SelectTool extends Tool {
     return "Select Tool";
   }
 
+  private boolean isSelectionMovable(Canvas canvas) {
+    for (Component comp : canvas.getSelection().getAnchoredComponents()) {
+      Boolean isLocked = comp.getAttributeSet().getValue(StdAttr.LOCKED);
+      if (isLocked != null && isLocked.booleanValue()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private void handleMoveDrag(Canvas canvas, int dx, int dy, int modsEx) {
     boolean connect = shouldConnect(canvas, modsEx);
     drawConnections = connect;
@@ -323,7 +333,9 @@ public class SelectTool extends Tool {
                 canvas.getSelection().getAnchoredComponents());
         moveGesture = gesture;
       }
-      if (dx != 0 || dy != 0) {
+      if (!isSelectionMovable(canvas)) {
+          canvas.setErrorMessage(S.getter("cannotModifyError"));
+      } else if (dx != 0 || dy != 0) {
         boolean queued = gesture.enqueueRequest(dx, dy);
         if (queued) {
           canvas.setErrorMessage(new ComputingMessage(dx, dy), COLOR_COMPUTING);
@@ -503,6 +515,8 @@ public class SelectTool extends Tool {
           canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else if (proj.getSelection().hasConflictWhenMoved(dx, dy)) {
           canvas.setErrorMessage(S.getter("exclusiveError"));
+        } else if (!isSelectionMovable(canvas)) {
+          canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else {
           boolean connect = shouldConnect(canvas, e.getModifiersEx());
           drawConnections = false;

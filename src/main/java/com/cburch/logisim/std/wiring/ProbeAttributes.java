@@ -60,6 +60,7 @@ public class ProbeAttributes extends AbstractAttributeSet implements ConvertEven
   private static final List<Attribute<?>> ATTRIBUTES =
       Arrays.asList(
           StdAttr.FACING,
+          StdAttr.LOCKED,
           RadixOption.ATTRIBUTE,
           StdAttr.LABEL,
           StdAttr.LABEL_LOC,
@@ -72,6 +73,7 @@ public class ProbeAttributes extends AbstractAttributeSet implements ConvertEven
   }
 
   Direction facing = Direction.EAST;
+  boolean locked = false;
   String label = "";
   Object labelloc = Direction.WEST;
   Font labelfont = StdAttr.DEFAULT_LABEL_FONT;
@@ -95,6 +97,7 @@ public class ProbeAttributes extends AbstractAttributeSet implements ConvertEven
   @SuppressWarnings("unchecked")
   public <E> E getValue(Attribute<E> attr) {
     if (attr == StdAttr.FACING) return (E) facing;
+    if (attr == StdAttr.LOCKED) return (E) Boolean.valueOf(locked);
     if (attr == StdAttr.LABEL) return (E) label;
     if (attr == StdAttr.LABEL_LOC) return (E) labelloc;
     if (attr == StdAttr.LABEL_FONT) return (E) labelfont;
@@ -111,6 +114,10 @@ public class ProbeAttributes extends AbstractAttributeSet implements ConvertEven
       Direction newValue = (Direction) value;
       if (facing.equals(newValue)) return;
       facing = (Direction) value;
+    } else if (attr == StdAttr.LOCKED) {
+      boolean NewLocked = ((Boolean) value).booleanValue();
+      if (locked == NewLocked) return;
+      locked = NewLocked;
     } else if (attr == StdAttr.LABEL) {
       String val = (String) value;
       if (label.equals(val)) return;

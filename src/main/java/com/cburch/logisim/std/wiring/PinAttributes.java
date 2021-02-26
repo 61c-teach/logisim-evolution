@@ -59,6 +59,7 @@ class PinAttributes extends ProbeAttributes {
   private static final List<Attribute<?>> ATTRIBUTES =
       Arrays.asList(
           StdAttr.FACING,
+          StdAttr.LOCKED,
           Pin.ATTR_TYPE,
           StdAttr.WIDTH,
           Pin.ATTR_TRISTATE,

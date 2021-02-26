@@ -64,6 +64,16 @@ public class Attributes {
       else return S.get("booleanFalseOption");
     }
   }
+  private static class UnconfigurableBooleanAttribute extends BooleanAttribute {
+    private UnconfigurableBooleanAttribute(String name, StringGetter disp) {
+      super(name, disp);
+    }
+
+    @Override
+    public boolean isHidden() {
+      return true;
+    }
+  }
   
   private static class IOMapAttribute extends Attribute<ComponentMapInformationContainer> {
 
@@ -498,6 +508,14 @@ public class Attributes {
 
   public static Attribute<Boolean> forBoolean(String name, StringGetter disp) {
     return new BooleanAttribute(name, disp);
+  }
+
+  public static Attribute<Boolean> forUnconfigurableBoolean(String name) {
+    return forUnconfigurableBoolean(name, getter(name));
+  }
+
+  public static Attribute<Boolean> forUnconfigurableBoolean(String name, StringGetter disp) {
+    return new UnconfigurableBooleanAttribute(name, disp);
   }
 
   public static Attribute<Color> forColor(String name) {
