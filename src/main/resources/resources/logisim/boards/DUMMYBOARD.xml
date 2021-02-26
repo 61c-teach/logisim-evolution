@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<DUMMYBOARD>
+   <BoardInformation>
+      <!--This section decribes the FPGA and its clock-->
+      <ClockInformation FPGApin="PIN_1" Frequency="1" IOStandard="Default" PullBehavior="Float"/>
+      <FPGAInformation Family="DUMMY 9000" FlashName="null" FlashPos="1" JTAGPos="1" Package="PQFP 1" Part="DUMMYFPGA-1" Speedgrade="1" USBTMC="false" Vendor="DUMMY"/>
+      <UnusedPins PullBehavior="Float"/>
+   </BoardInformation>
+   <IOComponents>
+      <!--This section describes all Components present on the boards-->
+   </IOComponents>
+   <BoardPicture>
+      <!--This section hold the board picture-->
+      <PictureDimension Height="1" Width="1"/>
+      <CompressionCodeTable TableData=""/>
+      <PixelData PixelRGB=""/>
+   </BoardPicture>
+</DUMMYBOARD>
