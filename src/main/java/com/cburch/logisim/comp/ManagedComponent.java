@@ -14,6 +14,7 @@ import com.cburch.logisim.data.AttributeSet;
 import com.cburch.logisim.data.BitWidth;
 import com.cburch.logisim.data.Bounds;
 import com.cburch.logisim.data.Location;
+import com.cburch.logisim.instance.StdAttr;
 import com.cburch.logisim.util.EventSourceWeakSupport;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,6 +133,11 @@ public abstract class ManagedComponent extends AbstractComponent {
   @Override
   public Location getLocation() {
     return loc;
+  }
+
+  public boolean isLocked() {
+    Boolean isLocked = getAttributeSet().getValue(StdAttr.LOCKED);
+    return isLocked != null && isLocked.booleanValue();
   }
 
   @Override

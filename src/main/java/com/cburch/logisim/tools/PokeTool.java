@@ -244,6 +244,7 @@ public class PokeTool extends Tool {
         } else {
           final var p = (Pokable) c.getFeature(Pokable.class);
           if (p != null) {
+            if (c.isLocked()) continue;
             final var caret = p.getPokeCaret(event);
             setPokedComponent(circ, c, caret);
             final var attrs = c.getAttributeSet();
