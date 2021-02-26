@@ -66,6 +66,7 @@ public class SetAttributeAction extends Action {
     oldValues.clear();
     for (int i = 0; i < len; i++) {
       Component comp = comps.get(i);
+      if (comp.isLocked()) continue;
       Attribute<Object> attr = attrs.get(i);
       Object value = values.get(i);
       if (circuit.contains(comp)) {

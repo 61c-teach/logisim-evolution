@@ -444,6 +444,15 @@ public class Canvas extends JPanel
     return selection;
   }
 
+  public boolean isSelectionLocked() {
+    for (Component comp : getSelection().getAnchoredComponents()) {
+      if (comp.isLocked()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public String getToolTipText(MouseEvent event) {
     boolean showTips = AppPreferences.COMPONENT_TIPS.getBoolean();

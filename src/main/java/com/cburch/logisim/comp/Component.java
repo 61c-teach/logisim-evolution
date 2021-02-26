@@ -88,6 +88,8 @@ public interface Component {
   // location/extent methods
   Location getLocation();
 
+  boolean isLocked();
+
   void propagate(CircuitState state);
 
   void removeComponentListener(ComponentListener l);

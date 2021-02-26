@@ -422,6 +422,11 @@ public class InstanceComponent implements Component, AttributeListener, ToolTipM
     return defaultTip == null ? null : defaultTip.toString();
   }
 
+  public boolean isLocked() {
+    Boolean isLocked = getAttributeSet().getValue(StdAttr.LOCKED);
+    return isLocked != null && isLocked.booleanValue();
+  }
+
   public void propagate(CircuitState state) {
     factory.propagate(state.getInstanceState(this));
   }

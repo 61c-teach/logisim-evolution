@@ -260,6 +260,7 @@ public class PokeTool extends Tool {
         } else {
           Pokable p = (Pokable) c.getFeature(Pokable.class);
           if (p != null) {
+            if (c.isLocked()) continue;
             Caret caret = p.getPokeCaret(event);
             setPokedComponent(circ, c, caret);
             AttributeSet attrs = c.getAttributeSet();
