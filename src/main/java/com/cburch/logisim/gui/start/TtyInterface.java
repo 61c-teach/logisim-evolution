@@ -220,7 +220,7 @@ public class TtyInterface {
   private static String valueFormat(Value v, int format) {
     if ((format & FORMAT_TABLE_BIN) != 0) {
       // everything in binary
-      return v.toString();
+      return v.toBinaryString();
     } else if ((format & FORMAT_TABLE_HEX) != 0) {
       // everything thing in hex, no prefixes
       return v.toHexString();
@@ -314,18 +314,14 @@ public class TtyInterface {
       circuit = file.getCircuit(circuitToTest);
     }
     Map<Instance, String> pinNames = Analyze.getPinLabels(circuit);
-    ArrayList<Instance> outputPins = new ArrayList<>();
-    ArrayList<Instance> inputPins = new ArrayList<>();
     Instance haltPin = null;
     for (Map.Entry<Instance, String> entry : pinNames.entrySet()) {
       Instance pin = entry.getKey();
       String pinName = entry.getValue();
-      if (Pin.FACTORY.isInputPin(pin)) {
-        inputPins.add(pin);
-      } else {
-        outputPins.add(pin);
+      if (!Pin.FACTORY.isInputPin(pin)) {
         if (pinName.equals("halt")) {
           haltPin = pin;
+          break;
         }
       }
     }
@@ -351,7 +347,7 @@ public class TtyInterface {
       }
     }
     int ttyFormat = args.getTtyFormat();
-    int simCode = runSimulation(circState, outputPins, haltPin, ttyFormat);
+    int simCode = runSimulation(circState, pinNames, haltPin, ttyFormat);
     System.exit(simCode);
   }
 
@@ -452,11 +448,32 @@ public class TtyInterface {
   }
 
   private static int runSimulation(
-      CircuitState circState, ArrayList<Instance> outputPins, Instance haltPin, int format) {
+      CircuitState circState, Map<Instance, String> pinLabels, Instance haltPin, int format) {
     boolean showTable = (format & FORMAT_TABLE) != 0;
     boolean showSpeed = (format & FORMAT_SPEED) != 0;
     boolean showTty = (format & FORMAT_TTY) != 0;
     boolean showHalt = (format & FORMAT_HALT) != 0;
+
+    ArrayList<String> formats = new ArrayList<>();
+    ArrayList<String> headers = new ArrayList<>();
+    ArrayList<Instance> outputPins = new ArrayList<>();
+    for (Map.Entry<Instance, String> entry : pinLabels.entrySet()) {
+      Instance pin = entry.getKey();
+      String pinName = entry.getValue();
+      if (Pin.FACTORY.isInputPin(pin)) {
+        headers.add(pinName);
+      }
+    }
+    for (Map.Entry<Instance, String> entry : pinLabels.entrySet()) {
+      Instance pin = entry.getKey();
+      String pinName = entry.getValue();
+      if (!Pin.FACTORY.isInputPin(pin)) {
+        if (pin != haltPin) {
+          headers.add(pinName);
+        }
+        outputPins.add(pin);
+      }
+    }
 
     ArrayList<InstanceState> keyboardStates = null;
     StdinThread stdinThread = null;
@@ -493,7 +510,7 @@ public class TtyInterface {
         }
       }
       if (showTable) {
-        displayTableRow(prevOutputs, curOutputs);
+        displayTableRow(tickCount == 0, prevOutputs, curOutputs, headers, formats, format);
       }
 
       if (halted) {
