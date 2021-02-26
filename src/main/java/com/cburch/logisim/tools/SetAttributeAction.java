@@ -45,6 +45,7 @@ public class SetAttributeAction extends Action {
     oldValues.clear();
     for (var i = 0; i < len; i++) {
       final var comp = comps.get(i);
+      if (comp.isLocked()) continue;
       final var attr = attrs.get(i);
       final var value = values.get(i);
       if (circuit.contains(comp)) {

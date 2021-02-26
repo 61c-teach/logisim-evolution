@@ -72,6 +72,8 @@ public interface Component extends Location.At {
    */
   Object getFeature(Object key);
 
+  boolean isLocked();
+
   default void propagate(CircuitState state) {
     // no-op implementation
   }
