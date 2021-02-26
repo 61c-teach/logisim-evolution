@@ -194,7 +194,7 @@ public class About {
 
       g.setFont(versionFont);
       fm = g.getFontMetrics();
-      str = "Version " + Main.VERSION.mainVersion();
+      str = "Version " + Main.VERSION.toString();
       g.drawString(str, x + IMAGE_WIDTH - fm.stringWidth(str), y + 50);
 
       g.setFont(copyrightFont);

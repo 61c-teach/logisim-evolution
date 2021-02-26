@@ -67,12 +67,16 @@ public class LogisimVersion {
    * @return LogisimVersion built from the string passed as parameter
    */
   public static LogisimVersion parse(String versionString) {
+    String variant = "";
+    if (versionString.contains("-")) {
+      variant = versionString.substring(versionString.indexOf("-") + 1);
+      versionString = versionString.substring(0, versionString.indexOf("-"));
+    }
     String[] parts = versionString.split("\\.");
     int major = 0;
     int minor = 0;
     int release = 0;
     int revision = FINAL_REVISION;
-    String variant = "";
 
     if (versionString.isEmpty()) {
       // Return the default values for an empty version string
@@ -186,7 +190,7 @@ public class LogisimVersion {
     if (ret == null) {
       ret = major + "." + minor + "." + release;
       if (revision != FINAL_REVISION) ret += "." + revision;
-      if (!variant.equals("")) ret += "." + variant;
+      if (!variant.equals("")) ret += "-" + variant;
       repr = ret;
     }
     return (ret);

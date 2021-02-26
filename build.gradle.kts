@@ -9,7 +9,7 @@ plugins {
     java
     application
     id("com.github.johnrengelman.shadow") version "6.1.0"
-} 
+}
 
 repositories {
     jcenter()
@@ -154,7 +154,7 @@ tasks {
         manifest {
             attributes.putAll(mapOf(
                     "Implementation-Title" to name,
-                    "Implementation-Version" to archiveVersion
+                    "Implementation-Version" to project.version
             ))
         }
 
