@@ -67,6 +67,7 @@ public class LayoutEditHandler extends EditHandler
     Selection sel = proj == null ? null : proj.getSelection();
     boolean selEmpty = (sel == null || sel.isEmpty());
     boolean canChange = proj != null && proj.getLogisimFile().contains(proj.getCurrentCircuit());
+    canChange &= (sel != null && !sel.hasLocked());
 
     boolean selectAvailable = false;
     for (Library lib : proj.getLogisimFile().getLibraries()) {

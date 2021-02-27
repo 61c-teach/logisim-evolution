@@ -183,6 +183,15 @@ public class Selection extends SelectionBase {
   //
   // query methods
   //
+  public boolean hasLocked() {
+    for (Component comp : getComponents()) {
+      if (comp.isLocked()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean isEmpty() {
     return selected.isEmpty() && lifted.isEmpty();
   }

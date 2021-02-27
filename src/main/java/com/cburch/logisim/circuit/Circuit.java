@@ -818,6 +818,13 @@ public class Circuit {
     return wires.points.hasConflict(comp);
   }
 
+  public boolean hasLockedPins() {
+    for (Component comp : getComponents()) {
+      if (comp.getFactory() == Pin.FACTORY && comp.isLocked()) return true;
+    }
+    return false;
+  }
+
   public boolean isConnected(Location loc, Component ignore) {
     for (Component o : wires.points.getComponents(loc)) {
       if (o != ignore) return true;

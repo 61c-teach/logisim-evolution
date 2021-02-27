@@ -323,8 +323,8 @@ public class SelectTool extends Tool {
                 canvas.getSelection().getAnchoredComponents());
         moveGesture = gesture;
       }
-      if (canvas.isSelectionLocked()) {
-        canvas.setErrorMessage(S.getter("cannotModifyError"));
+      if (canvas.getSelection().hasLocked()) {
+        canvas.setErrorMessage(S.getter("cannotModifyLockedError"));
       } else if (dx != 0 || dy != 0) {
         boolean queued = gesture.enqueueRequest(dx, dy);
         if (queued) {
@@ -353,7 +353,7 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyPressed(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     if (state == MOVING && e.getKeyCode() == KeyEvent.VK_SHIFT) {
@@ -408,7 +408,7 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyReleased(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     if (state == MOVING && e.getKeyCode() == KeyEvent.VK_SHIFT) {
@@ -420,7 +420,7 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyTyped(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     processKeyEvent(canvas, e, KeyConfigurationEvent.KEY_TYPED);
@@ -514,8 +514,8 @@ public class SelectTool extends Tool {
           canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else if (proj.getSelection().hasConflictWhenMoved(dx, dy)) {
           canvas.setErrorMessage(S.getter("exclusiveError"));
-        } else if (canvas.isSelectionLocked()) {
-          canvas.setErrorMessage(S.getter("cannotModifyError"));
+        } else if (proj.getSelection().hasLocked()) {
+          canvas.setErrorMessage(S.getter("cannotModifyLockedError"));
         } else {
           boolean connect = shouldConnect(canvas, e.getModifiersEx());
           drawConnections = false;
