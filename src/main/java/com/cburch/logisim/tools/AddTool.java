@@ -35,6 +35,7 @@ import com.cburch.logisim.proj.Action;
 import com.cburch.logisim.proj.Project;
 import com.cburch.logisim.std.base.BaseLibrary;
 import com.cburch.logisim.std.gates.GateKeyboardModifier;
+import com.cburch.logisim.std.wiring.Pin;
 import com.cburch.logisim.std.wiring.ProbeAttributes;
 import com.cburch.logisim.tools.key.KeyConfigurationEvent;
 import com.cburch.logisim.tools.key.KeyConfigurator;
@@ -496,6 +497,19 @@ public class AddTool extends Tool implements Transferable, PropertyChangeListene
           autoLabeler.setLabel("", canvas.getCircuit(), source);
       }
 
+      if (getFactory() == Pin.FACTORY) {
+        if (canvas.getCircuit().hasLockedPins()) {
+          if (!SelectionActions.confirmAddPinToLocked()) {
+            final var proj = canvas.getProject();
+            final var act = SelectionActions.dropAll(canvas.getSelection());
+            if (act != null) {
+              proj.doAction(act);
+            }
+            return;
+          }
+        }
+      }
+
       final var matrix = new MatrixPlacerInfo(label);
       if (matrixPlace) {
         final var base = getBaseAttributes();
@@ -544,6 +558,11 @@ public class AddTool extends Tool implements Transferable, PropertyChangeListene
               }
             }
             final var comp = source.createComponent(loc, attrsCopy);
+
+            if (comp.isLocked()) {
+              canvas.setErrorMessage(S.getter("cannotModifyLockedError"));
+              return;
+            }
 
             if (circ.hasConflict(comp)) {
               canvas.setErrorMessage(S.getter("exclusiveError"));

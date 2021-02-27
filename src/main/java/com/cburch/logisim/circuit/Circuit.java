@@ -809,6 +809,13 @@ public class Circuit {
     return false;
   }
 
+  public boolean hasLockedPins() {
+    for (Component comp : getComponents()) {
+      if (comp.getFactory() == Pin.FACTORY && comp.isLocked()) return true;
+    }
+    return false;
+  }
+
   public boolean isConnected(Location loc, Component ignore) {
     for (final var o : wires.points.getComponents(loc)) {
       if (o != ignore) return true;
