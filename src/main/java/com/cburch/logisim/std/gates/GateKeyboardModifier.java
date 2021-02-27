@@ -44,7 +44,6 @@ public class GateKeyboardModifier {
       boolean CreateAction) {
     switch (KeyCode) {
       case KeyEvent.VK_N:
-      case KeyEvent.VK_S:
         if (attrs.containsAttribute(GateAttributes.ATTR_SIZE)) {
           if (CreateAction) act.set(comp, GateAttributes.ATTR_SIZE, GateAttributes.SIZE_NARROW);
           else {
