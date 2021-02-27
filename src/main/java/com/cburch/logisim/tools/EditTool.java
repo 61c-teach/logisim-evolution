@@ -268,7 +268,7 @@ public class EditTool extends Tool {
 
   @Override
   public void keyPressed(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     /* Rotate if ctrl is pressed and space also*/
@@ -325,7 +325,7 @@ public class EditTool extends Tool {
 
   @Override
   public void keyReleased(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     if (e.getKeyCode() == KeyEvent.VK_ALT) {
@@ -338,7 +338,7 @@ public class EditTool extends Tool {
 
   @Override
   public void keyTyped(Canvas canvas, KeyEvent e) {
-    if (canvas.isSelectionLocked()) {
+    if (canvas.getSelection().hasLocked()) {
       return;
     }
     select.keyTyped(canvas, e);

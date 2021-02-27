@@ -67,8 +67,7 @@ public final class Wire implements Component, AttributeSet, CustomHandles, Itera
   public static final Attribute<AttributeOption> DIR_ATTR = Attributes.forOption("direction", S.getter("wireDirectionAttr"), new AttributeOption[] {VALUE_HORZ, VALUE_VERT});
   public static final Attribute<Integer> LEN_ATTR = Attributes.forInteger("length", S.getter("wireLengthAttr"));
 
-  private static final List<Attribute<?>> ATTRIBUTES = Arrays.asList(DIR_ATTR, LEN_ATTR);
-
+  private static final List<Attribute<?>> ATTRIBUTES = Arrays.asList(DIR_ATTR, LEN_ATTR, StdAttr.LOCKED);
   private static final Cache cache = new Cache();
 
   final Location e0;
