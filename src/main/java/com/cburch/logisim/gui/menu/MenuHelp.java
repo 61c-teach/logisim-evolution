@@ -62,7 +62,6 @@ class MenuHelp extends JMenu implements ActionListener {
       addSeparator();
       add(about);
     }
-    disableHelp();
   }
 
   @Override
@@ -86,6 +85,12 @@ class MenuHelp extends JMenu implements ActionListener {
     tutorial.setEnabled(false);
     library.setEnabled(false);
     www.setEnabled(false);
+  }
+
+  private void enableHelp() {
+    guide.setEnabled(true);
+    tutorial.setEnabled(true);
+    library.setEnabled(true);
   }
 
   private void loadBroker() {
@@ -158,6 +163,7 @@ class MenuHelp extends JMenu implements ActionListener {
       helpFrame.setLocale(Locale.getDefault());
       loadBroker();
     }
+    enableHelp();
   }
 
   private void showHelp(String target) {
