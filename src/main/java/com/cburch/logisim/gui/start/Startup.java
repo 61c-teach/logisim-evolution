@@ -853,6 +853,7 @@ public class Startup implements AWTEventListener {
   public void run() {
     if (isTty) {
       try {
+        System.setProperty("apple.awt.UIElement", "true");
         TtyInterface.run(this);
         System.exit(0);
       } catch (Exception t) {
