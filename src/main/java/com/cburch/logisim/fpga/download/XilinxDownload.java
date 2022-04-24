@@ -181,9 +181,6 @@ public class XilinxDownload implements VendorDownload {
           && downloadFile.exists();
     }
     final var contents = LineBuffer.getBuffer()
-            .pair("JTAGPos", jtagPos)
-            .pair("fileExt", bitfileExt)
-            .pair("fileBaseName", ToplevelHdlGeneratorFactory.FPGA_TOP_LEVEL_NAME)
             .pair("mcsFile", scriptPath + File.separator + MCS_FILE)
             .pair("hdlType", HdlType.toUpperCase());
 
@@ -203,6 +200,9 @@ public class XilinxDownload implements VendorDownload {
     if (!FileWriter.writeContents(scriptFile, contents.get())) return false;
 
     contents.clear();
+    contents.pair("JTAGPos", jtagPos)
+            .pair("fileExt", bitfileExt)
+            .pair("fileBaseName", ToplevelHdlGeneratorFactory.FPGA_TOP_LEVEL_NAME);
     contents.add("setmode -bscan");
 
     if (writeToFlash && boardInfo.fpga.isFlashDefined()) {
