@@ -67,25 +67,7 @@ public class BitSelectorHdlGeneratorFactory extends AbstractHdlGeneratorFactory 
           assign s_extendedVector[{{inBits}}-1:0] = dataIn;
           """);
       if (outputBits > 1) {
-        contents.add("""
-            wire[513:0] s_selectVector;
-            reg[{{outBits}}-1:0] s_selected_slice;
-            assign s_selectVector[513:{{extBits}}] = 0;
-            assign s_selectVector[{{extBits}}-1:0] = s_extendedVector;
-            assign dataOut = s_selected_slice;
-
-            always @(*)
-            begin
-               case (sel)
-            """);
-        for (var i = 15; i > 0; i--) {
-          contents.add("{{1}}{{2}} : s_selected_slice <= s_selectVector[({{3}}*{{outBits}})-1:{{2}}*{{outBits}}];", LineBuffer.getIndent(2), i, (i + 1));
-        }
-        contents.add("""
-                  default : s_selected_slice <= s_selectVector[{{outBits}}-1:0];
-               endcase
-            end
-            """);
+        contents.add("assign dataOut = s_extendedVector[sel * {{outBits}} +: {{outBits}}];");
       } else {
         contents.add("assign dataOut = s_extendedVector[sel];");
       }
