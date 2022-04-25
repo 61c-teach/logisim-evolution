@@ -111,9 +111,9 @@ public class ShifterHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
     if (stageNumber == 0) {
       contents.add("""
           assign s_stage0ShiftIn = (({{shiftMode}} == 1) || ({{shiftMode}} == 3))
-               ? dataA[{{shiftMode}}] : ({{nrOfBits1}} == 4) ? dataA[0] : 0;
+               ? dataA[{{nrOfBits1}}] : ({{shiftMode}} == 4) ? dataA[0] : 0;
 
-          assign s_stage0Result  = (shiftAmount == 0)
+          assign s_stage0Result  = (shiftAmount[0] == 0)
                ? dataA
                : (({{shiftMode}} == 0) || ({{shiftMode}} == 1))
                   ? {dataA[{{nrOfBits2}}:0],s_stage0ShiftIn}
@@ -135,7 +135,7 @@ public class ShifterHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
                                      ({{shiftMode}} == 4) ?
                                      s_stage{{stageNumber1}}Result[{{nrOfBitsToShift1}}:0] : 0;
 
-          assign s_stage{{stageNumber}}Result  = (shiftAmount[{{stageNumber}}]==0) ?
+          assign s_stage{{stageNumber}}Result  = (shiftAmount[{{stageNumber}}] == 0) ?
                                      s_stage{{stageNumber1}}Result :
                                      (({{shiftMode}} == 0)||({{shiftMode}} == 1)) ?
                                      {s_stage{{stageNumber1}}Result[{{bitsShiftDiff1}}:0],s_stage{{stageNumber}}ShiftIn} :
