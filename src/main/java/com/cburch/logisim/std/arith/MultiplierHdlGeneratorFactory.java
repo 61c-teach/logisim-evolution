@@ -74,7 +74,7 @@ public class MultiplierHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
               always @(*)
               begin
                  s_carryIn[{{nrOfBits}}-1:0] = carryIn;
-                 if ({{unsigned}}== 1)
+                 if ({{unsigned}} == 0)
                     begin
                        s_carryIn[{{calcBits}}-1:{{nrOfBits}}] = 0;
                        s_multUnsigned = $unsigned(inputA) * $unsigned(inputB);
