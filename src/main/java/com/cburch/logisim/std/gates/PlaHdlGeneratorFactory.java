@@ -16,6 +16,8 @@ import com.cburch.logisim.fpga.hdlgenerator.Hdl;
 import com.cburch.logisim.instance.Port;
 import com.cburch.logisim.util.LineBuffer;
 
+import java.util.ArrayList;
+
 public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
 
   public PlaHdlGeneratorFactory() {
@@ -67,13 +69,20 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
       } else {
         String leader = "   if ";
         for (PlaTable.Row r : tt.rows()) {
-          contents.add(leader + "(index ==? {{1}}'b{{2}}) begin", inSz, bits(r.inBits));
+          final var ifCondition = new ArrayList<String>();
+          for (int i = 0; i < r.inBits.length; i++) {
+            if (r.inBits[i] != '0' && r.inBits[i] != '1') continue;
+            ifCondition.add(String.format("index[%d] == 1'b%c", i, r.inBits[i]));
+          }
+          contents.add(leader + "({{1}}) begin", String.join(" && ", ifCondition));
+          contents.add("      // index ==? " + bits(r.inBits));
+          contents.add("      // Comment: " + r.comment);
           contents.add("      temp = {{1}}'b{{2}};", outSz, bits(r.outBits));
           contents.add("   end");
           leader = "   else if ";
         }
         contents.add("   else begin");
-        contents.add("      temp = {{1}};", outSz, Hdl.getZeroVector(outSz, true));
+        contents.add("      temp = {{1}};", Hdl.getZeroVector(outSz, true));
         contents.add("   end");
       }
       contents.add("end");

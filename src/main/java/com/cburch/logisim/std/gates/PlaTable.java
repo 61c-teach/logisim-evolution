@@ -237,7 +237,7 @@ public class PlaTable {
   public static class Row {
     public char[] inBits;
     public char[] outBits;
-    private String comment = "";
+    public String comment = "";
 
     public Row(int inSize, int outSize) {
       inBits = new char[inSize];
