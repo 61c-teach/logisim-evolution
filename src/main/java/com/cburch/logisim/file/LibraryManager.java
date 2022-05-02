@@ -121,14 +121,14 @@ public final class LibraryManager {
 
   private static String toRelative(Loader loader, File file) {
     final var currentDirectory = loader.getCurrentDirectory();
-    var fileName = file.toString();
+    var fileName = file.getAbsolutePath();
     try {
       fileName = file.getCanonicalPath();
     } catch (IOException e) {
       // Do nothing as we already have defined the default above
     }
     if (currentDirectory != null) {
-      final var currentParts = currentDirectory.toString().split(Pattern.quote(File.separator));
+      final var currentParts = currentDirectory.getAbsolutePath().split(Pattern.quote(File.separator));
       final var newParts = fileName.split(Pattern.quote(File.separator));
       final var nrOfNewParts = newParts.length;
       // note that the newParts includes the filename, whilst the old doesn't
