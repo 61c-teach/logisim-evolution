@@ -253,7 +253,7 @@ public class TtyInterface {
     final var loader = new Loader(null);
     LogisimFile file;
     try {
-      file = loader.openLogisimFile(fileToOpen, args.getSubstitutions());
+      file = loader.openLogisimFile(fileToOpen, args.getSubstitutions(), args.getLibSubstitutions());
     } catch (LoadFailedException e) {
       logger.error("{}", S.get("ttyLoadError", fileToOpen.getName()));
       System.exit(-1);
