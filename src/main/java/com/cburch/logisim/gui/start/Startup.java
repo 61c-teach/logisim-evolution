@@ -86,6 +86,7 @@ public class Startup implements AWTEventListener {
   private static Startup startupTemp = null;
   private final ArrayList<File> filesToOpen = new ArrayList<>();
   private final HashMap<File, File> substitutions = new HashMap<>();
+  private final HashMap<String, String> libSubstitutions = new HashMap<>();
   private final ArrayList<File> filesToPrint = new ArrayList<>();
   // based on command line
   final boolean isTty;
@@ -158,6 +159,8 @@ public class Startup implements AWTEventListener {
   private static final String ARG_CLEAR_PREFS_LONG = "clear-prefs";
   private static final String ARG_SUBSTITUTE_SHORT = "s";
   private static final String ARG_SUBSTITUTE_LONG = "substitute";
+  private static final String ARG_LIB_SUBSTITUTE_SHORT = "S";
+  private static final String ARG_LIB_SUBSTITUTE_LONG = "lib-substitute";
   private static final String ARG_TTY_SHORT = "t";
   private static final String ARG_TTY_LONG = "tty";
   private static final String ARG_TEMPLATE_SHORT = "u";
@@ -322,6 +325,7 @@ public class Startup implements AWTEventListener {
     addOption(opts, "argFpgaWorkspace", ARG_FPGA_WORKSPACE, 1);
     addOption(opts, "argClearOption", ARG_CLEAR_PREFS_LONG);
     addOption(opts, "argSubOption", ARG_SUBSTITUTE_LONG, ARG_SUBSTITUTE_SHORT, 2);
+    addOption(opts, "argLibSubOption", ARG_LIB_SUBSTITUTE_LONG, ARG_LIB_SUBSTITUTE_SHORT, 2);
     addOption(opts, "argLoadOption", ARG_LOAD_LONG, ARG_LOAD_SHORT, 1);
     addOption(opts, "argGatesOption", ARG_GATES_LONG, ARG_GATES_SHORT, 1);
     addOption(opts, "argGeometryOption", ARG_GEOMETRY_LONG, ARG_GEOMETRY_SHORT, 1);
@@ -386,6 +390,7 @@ public class Startup implements AWTEventListener {
         case ARG_VERSION_LONG -> printVersion();
         case ARG_TTY_LONG -> handleArgTty(startup, opt);
         case ARG_SUBSTITUTE_LONG -> handleArgSubstitute(startup, opt);
+        case ARG_LIB_SUBSTITUTE_LONG -> handleArgLibSubstitute(startup, opt);
         case ARG_LOAD_LONG -> handleArgLoad(startup, opt);
         case ARG_GATES_LONG -> handleArgGates(startup, opt);
         case ARG_GEOMETRY_LONG -> handleArgGeometry(startup, opt);
@@ -490,6 +495,17 @@ public class Startup implements AWTEventListener {
     final var fileB = new File(opt.getValues()[1]);
     if (!startup.substitutions.containsKey(fileA)) {
       startup.substitutions.put(fileA, fileB);
+      return RC.OK;
+    }
+
+    // FIXME: warning should be sufficient here maybe?
+    logger.error(S.get("argDuplicateSubstitutionError"));
+    return RC.QUIT;
+  }
+
+  private static RC handleArgLibSubstitute(Startup startup, Option opt) {
+    if (!startup.libSubstitutions.containsKey(opt.getValues()[0])) {
+      startup.libSubstitutions.put(opt.getValues()[0], opt.getValues()[1]);
       return RC.OK;
     }
 
@@ -803,6 +819,10 @@ public class Startup implements AWTEventListener {
     return Collections.unmodifiableMap(substitutions);
   }
 
+  Map<String, String> getLibSubstitutions() {
+    return Collections.unmodifiableMap(libSubstitutions);
+  }
+
   int getTtyFormat() {
     return ttyFormat;
   }
@@ -949,7 +969,7 @@ public class Startup implements AWTEventListener {
           } else if (testCircPathInput != null && testCircPathOutput != null) {
             /* This part of the function will create a new circuit file (
              * XML) which will be open and saved again using the  */
-            proj = ProjectActions.doOpen(monitor, fileToOpen, substitutions);
+            proj = ProjectActions.doOpen(monitor, fileToOpen, substitutions, libSubstitutions);
 
             ProjectActions.doSave(proj, new File(testCircPathOutput));
           } else if (testCircuitPathInput != null) {
@@ -967,7 +987,7 @@ public class Startup implements AWTEventListener {
               System.exit(-1);
             }
           } else {
-            ProjectActions.doOpen(monitor, fileToOpen, substitutions);
+            ProjectActions.doOpen(monitor, fileToOpen, substitutions, libSubstitutions);
           }
           numOpened++;
         } catch (LoadFailedException ex) {

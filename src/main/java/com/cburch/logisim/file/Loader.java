@@ -123,6 +123,7 @@ public class Loader implements LibraryLoader {
   private File mainFile = null;
   private final Stack<File> filesOpening = new Stack<>();
   private Map<File, File> substitutions = new HashMap<>();
+  private Map<String, String> libSubstitutions = new HashMap<>();
 
   public Loader(Component parent) {
     this.parent = parent;
@@ -220,6 +221,11 @@ public class Loader implements LibraryLoader {
     return ret == null ? source : ret;
   }
 
+  private String getLibSubstitution(String source) {
+    final var ret = libSubstitutions.get(source);
+    return ret == null ? source : ret;
+  }
+
   Library loadJarFile(File request, String className) throws LoadFailedException {
     final var actual = getSubstitution(request);
 
@@ -257,7 +263,8 @@ public class Loader implements LibraryLoader {
   //
   @Override
   public Library loadLibrary(String desc) {
-    return LibraryManager.instance.loadLibrary(this, desc);
+    String actual = getLibSubstitution(desc);
+    return LibraryManager.instance.loadLibrary(this, actual);
   }
 
   //
@@ -306,13 +313,15 @@ public class Loader implements LibraryLoader {
     }
   }
 
-  public LogisimFile openLogisimFile(File file, Map<File, File> substitutions)
+  public LogisimFile openLogisimFile(File file, Map<File, File> substitutions, Map<String, String> libSubstitutions)
       throws LoadFailedException {
     this.substitutions = substitutions;
+    this.libSubstitutions = libSubstitutions;
     try {
       return openLogisimFile(file);
     } finally {
       this.substitutions = Collections.emptyMap();
+      this.libSubstitutions = Collections.emptyMap();
     }
   }
 
