@@ -482,8 +482,8 @@ public class Startup implements AWTEventListener {
           continue;
         }
         startup.ttyFormat |= val;
-        return RC.OK;
       }
+      return RC.OK;
     }
     logger.error(S.get("ttyFormatError"));
     // FIXME: Shouldn't we exit here; -> RC.QUIT
