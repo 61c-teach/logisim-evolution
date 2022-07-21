@@ -617,11 +617,11 @@ public class AppPreferences {
     POKE_WIRE_RADIX1 =
         create(
             new PrefMonitorStringOpts(
-                "pokeRadix1", radixStrings, RadixOption.RADIX_2.getSaveString()));
+                "pokeRadix1", radixStrings, RadixOption.RADIX_16.getSaveString()));
     POKE_WIRE_RADIX2 =
         create(
             new PrefMonitorStringOpts(
-                "pokeRadix2", radixStrings, RadixOption.RADIX_10_SIGNED.getSaveString()));
+                "pokeRadix2", radixStrings, RadixOption.RADIX_10_UNSIGNED.getSaveString()));
   }
 
   public static final PrefMonitor<Boolean> Memory_Startup_Unknown =
