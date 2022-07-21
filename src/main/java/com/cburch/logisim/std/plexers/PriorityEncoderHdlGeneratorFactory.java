@@ -30,8 +30,8 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
   public PriorityEncoderHdlGeneratorFactory() {
     super();
     myParametersList
-        .add(NR_OF_INPUT_BITS_STRING, NR_OF_INPUT_BITS_ID, HdlParameters.MAP_POW2, PlexersLibrary.ATTR_SELECT)
-        .add(NR_OF_SELECT_BITS_STRING, NR_OF_SELECT_BITS_ID, HdlParameters.MAP_INT_ATTRIBUTE, PlexersLibrary.ATTR_SELECT);
+        .add(NR_OF_INPUT_BITS_STRING, NR_OF_INPUT_BITS_ID, HdlParameters.MAP_POW2, PlexersLibrary.ATTR_SELECT_ENC)
+        .add(NR_OF_SELECT_BITS_STRING, NR_OF_SELECT_BITS_ID, HdlParameters.MAP_INT_ATTRIBUTE, PlexersLibrary.ATTR_SELECT_ENC);
     myWires
         .addWire("s_inIsZero", 1)
         .addWire("s_address", 6)

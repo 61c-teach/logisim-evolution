@@ -103,6 +103,8 @@ public class PlexersLibrary extends Library {
 
   public static final Attribute<BitWidth> ATTR_SELECT =
       Attributes.forBitWidth("select", S.getter("plexerSelectBitsAttr"), 1, 5);
+  public static final Attribute<BitWidth> ATTR_SELECT_ENC =
+      Attributes.forBitWidth("select_enc", S.getter("plexerSelectBitsAttr"), 1, 6);
   public static final Object DEFAULT_SELECT = BitWidth.create(1);
 
   public static final Attribute<Boolean> ATTR_TRISTATE =
