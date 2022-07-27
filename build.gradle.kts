@@ -119,7 +119,7 @@ extra.apply {
   logger.debug("targetFilePathBaseShort: \"${targetDir}/${baseFilenameShort}\"")
 
   // Name of application shadowJar file.
-  val shadowJarFilename = "${baseFilename}-all.jar"
+  val shadowJarFilename = "${baseFilename}.jar"
   set(SHADOW_JAR_FILE_NAME, shadowJarFilename)
   logger.debug("shadowJarFilename: \"${shadowJarFilename}\"")
 
@@ -694,6 +694,7 @@ tasks {
   shadowJar {
     archiveBaseName.set(project.name)
     archiveVersion.set(ext.get(APP_VERSION) as String)
+    classifier = null
     from(".") {
       include("LICENSE.md")
       include("README.md")
