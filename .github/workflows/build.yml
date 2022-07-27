@@ -45,5 +45,5 @@ jobs:
     - name: Post artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: logisim-evolution-3.8.0-61c.${{ steps.vars.outputs.version_sha }}-all.jar
-        path: build/libs/logisim-evolution-3.8.0-61c.${{ steps.vars.outputs.version_sha }}-all.jar
+        name: jar
+        path: build/libs/*.jar
