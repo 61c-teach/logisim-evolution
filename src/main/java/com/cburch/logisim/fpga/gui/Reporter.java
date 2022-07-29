@@ -93,7 +93,7 @@ public class Reporter {
   public void addWarning(Object message) {
     if (myCommander == null) {
       if (message instanceof String msg) logger.warn(msg);
-      if (message instanceof SimpleDrcContainer) logger.error(message.toString());
+      if (message instanceof SimpleDrcContainer) logger.warn(message.toString());
     } else {
       myCommander.addWarning(message instanceof String
           ? new SimpleDrcContainer(message, SimpleDrcContainer.LEVEL_NORMAL)
