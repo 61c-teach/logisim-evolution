@@ -27,14 +27,15 @@ public class RomHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
     final var addressWidth = attrs.getValue(Mem.ADDR_ATTR).getWidth();
     final var dataWidth = attrs.getValue(Mem.DATA_ATTR).getWidth();
     final var romContents = attrs.getValue(Rom.CONTENTS_ATTR);
-    final var generator =
-        (new WithSelectHdlGenerator(
-                componentInfo.getComponent().getAttributeSet().getValue(StdAttr.LABEL),
-                Hdl.getBusName(componentInfo, RamAppearance.getAddrIndex(0, attrs), nets),
-                addressWidth,
-                Hdl.getBusName(componentInfo, RamAppearance.getDataOutIndex(0, attrs), nets),
-                dataWidth))
-            .setDefault(0L);
+    final var sourceNetName = Hdl.getBusName(componentInfo, RamAppearance.getAddrIndex(0, attrs), nets);
+    final var destNetName = Hdl.getBusName(componentInfo, RamAppearance.getDataOutIndex(0, attrs), nets);
+
+    if (sourceNetName == null || destNetName == null) {
+      return LineBuffer.getBuffer();
+    }
+
+    final var generator = (new WithSelectHdlGenerator(componentInfo.getComponent().getAttributeSet().getValue(StdAttr.LABEL),
+            sourceNetName, addressWidth, destNetName, dataWidth)).setDefault(0L);
     for (var addr = 0L; addr < (1L << addressWidth); addr++) {
       final var romValue = romContents.get(addr);
       if (romValue != 0L) generator.add(addr, romValue);
