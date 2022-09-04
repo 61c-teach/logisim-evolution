@@ -34,17 +34,17 @@ public class BitExtenderHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
         return contents;
       }
     }
+    // unconnected output
     if (componentInfo.getComponent().getEnd(0).getWidth().getWidth() == 1) {
-      /* Special case: Single bit output */
-      final var connectedNet = componentInfo.getComponent().getEnd(1).getWidth().getWidth() == 1 
-          ?  Hdl.getNetName(componentInfo, 1, true, nets) 
-          :  Hdl.getBusEntryName(componentInfo, 1, true, 0, nets);
-      contents.add("{{assign}} {{1}} {{=}} {{2}};", Hdl.getNetName(componentInfo, 0, true, nets), connectedNet);
-      contents.add(
-          "{{assign}} {{1}} {{=}} {{2}};",
-          Hdl.getNetName(componentInfo, 0, true, nets),
-          connectedNet);
-      contents.add("");
+      // skip if unconnected
+      if (componentInfo.getEnd(0).get((byte) 0).getParentNet() != null) {
+        /* Special case: Single bit output */
+        final var connectedNet = componentInfo.getComponent().getEnd(1).getWidth().getWidth() == 1
+            ?  Hdl.getNetName(componentInfo, 1, true, nets)
+            :  Hdl.getBusEntryName(componentInfo, 1, true, 0, nets);
+        contents.add("{{assign}} {{1}} {{=}} {{2}};", Hdl.getNetName(componentInfo, 0, true, nets), connectedNet);
+        contents.add("");
+      }
     } else {
       /*
        * We make ourselves life easy, we just enumerate through all the
@@ -75,7 +75,9 @@ public class BitExtenderHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
       }
       if (type.equals("input")) replacement.append(Hdl.getNetName(componentInfo, 2, true, nets));
       for (int bit = 0; bit < componentInfo.getComponent().getEnd(0).getWidth().getWidth(); bit++) {
-        if (bit < componentInfo.getComponent().getEnd(1).getWidth().getWidth()) {
+        if (componentInfo.getEnd(0).get((byte) bit).getParentNet() == null) {
+          contents.addRemarkLine("output bit "+ bit + " is unconnected");
+        } else if (bit < componentInfo.getComponent().getEnd(1).getWidth().getWidth()) {
           if (componentInfo.getEnd(1).getNrOfBits() > 1) {
             contents.add(
                 "{{assign}} {{1}} {{=}} {{2}};",
