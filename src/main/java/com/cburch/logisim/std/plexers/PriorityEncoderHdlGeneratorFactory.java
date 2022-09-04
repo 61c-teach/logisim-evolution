@@ -125,8 +125,8 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
           assign address = (~enable) ? 0 : s_address[{{selBits}}-1:0];
           assign s_inIsZero = (inputVector == 0) ? 1'b1 : 1'b0;
 
-          assign s_selectVector0[63:{{selBits}}] = 0;
-          assign s_selectVector0[{{selBits}}-1:0] = inputVector;
+          assign s_selectVector0[63:{{inBits}}] = 0;
+          assign s_selectVector0[{{inBits}}-1:0] = inputVector;
           assign s_address[5] = (s_selectVector0[63:32] == 0) ? 1'b0 : 1'b1;
           assign s_selectVector1 = (s_selectVector0[63:32] == 0) ? s_selectVector0[31:0] : s_selectVector0[63:32];
           assign s_address[4] = (s_selectVector1[31:16] == 0) ? 1'b0 : 1'b1;
