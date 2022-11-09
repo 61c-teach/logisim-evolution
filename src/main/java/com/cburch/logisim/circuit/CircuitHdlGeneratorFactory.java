@@ -53,11 +53,11 @@ public class CircuitHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
     // First we add the wires
     for (final var wire : theNetlist.getAllNets())
       if (!wire.isBus())
-        myWires.addWire(String.format("%s%d", NET_NAME, theNetlist.getNetId(wire)), 1);
+        myWires.addWire(String.format("%s%s", NET_NAME, theNetlist.getNetHdlName(wire)), 1);
     // Now we add the busses
     for (final var wire : theNetlist.getAllNets())
       if (wire.isBus() && wire.isRootNet())
-        myWires.addWire(String.format("%s%d", BUS_NAME, theNetlist.getNetId(wire)), wire.getBitWidth());
+        myWires.addWire(String.format("%s%s", BUS_NAME, theNetlist.getNetHdlName(wire)), wire.getBitWidth());
     if (inOutBubbles > 0)
       myPorts.add(Port.INOUT, LOCAL_INOUT_BUBBLE_BUS_NAME, inOutBubbles > 1 ? inOutBubbles : 0, 0);
     for (var clock = 0; clock < theNetlist.numberOfClockTrees(); clock++)
@@ -253,20 +253,20 @@ public class CircuitHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
     for (final var thisNet : theNets.getAllNets()) {
       if (thisNet.isForcedRootNet()) {
         // now we cycle through all the bits
-        final var wireId = theNets.getNetId(thisNet);
+        final var wireId = theNets.getNetHdlName(thisNet);
         for (var bit = 0; bit < thisNet.getBitWidth(); bit++) {
           // First we perform all source connections
           for (final var source : thisNet.getSourceNets(bit)) {
             final var destination = thisNet.isBus() ? LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME, wireId, bit)
                 :  LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, wireId);
             final var sourceWire = LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME,
-                theNets.getNetId(source.getParentNet()), source.getParentNetBitIndex());
+                theNets.getNetHdlName(source.getParentNet()), source.getParentNetBitIndex());
             contents.put(destination, sourceWire);
           }
           // Next we perform all sink connections
           for (final var source : thisNet.getSinkNets(bit)) {
             final var destination = LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME,
-                theNets.getNetId(source.getParentNet()), source.getParentNetBitIndex());
+                theNets.getNetHdlName(source.getParentNet()), source.getParentNetBitIndex());
             final var sourceWire = thisNet.isBus() ? LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME, wireId, bit)
                 :  LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, wireId);
             contents.put(destination, sourceWire);
@@ -621,9 +621,9 @@ public class CircuitHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
                * connection is to a bus or to a normal net
                */
               final var connectedNet = solderPoint.getParentNet().getBitWidth() == 1
-                    ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, theNets.getNetId(solderPoint.getParentNet()))
+                    ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, theNets.getNetHdlName(solderPoint.getParentNet()))
                     : LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME,
-                        theNets.getNetId(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex());
+                        theNets.getNetHdlName(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex());
               if (isInputConnection) {
                 signal.put(connectedNet, bitConnection);
               } else {

@@ -1280,6 +1280,13 @@ public class Netlist {
     return myNets.indexOf(selectedNet);
   }
 
+  public String getNetHdlName(Net selectedNet) {
+    if (selectedNet.hasTunnel()) {
+      return "_" + selectedNet.getTunnelNames().iterator().next();
+    }
+    return String.valueOf(this.getNetId(selectedNet));
+  }
+
   public ConnectionPoint getNetlistConnectionForSubCircuit(String label, int PortIndex, byte bitindex) {
     for (final var search : mySubCircuits) {
       final var circuitLabel = CorrectLabel.getCorrectLabel(search.getComponent().getAttributeSet().getValue(StdAttr.LABEL));
