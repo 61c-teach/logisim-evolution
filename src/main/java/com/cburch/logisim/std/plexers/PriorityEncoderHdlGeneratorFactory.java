@@ -35,7 +35,7 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
     myWires
         .addWire("s_inIsZero", 1)
         .addWire("s_address", 6)
-        .addWire("s_selectVector0", 64)
+        .addWire("s_selectVector0", 65)
         .addWire("s_selectVector1", 32)
         .addWire("s_selectVector2", 16)
         .addWire("s_selectVector3", 8)
@@ -125,7 +125,7 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
           assign address = (~enable) ? 0 : s_address[{{selBits}}-1:0];
           assign s_inIsZero = (inputVector == 0) ? 1'b1 : 1'b0;
 
-          assign s_selectVector0[63:{{inBits}}] = 0;
+          assign s_selectVector0[64:{{inBits}}] = 0;
           assign s_selectVector0[{{inBits}}-1:0] = inputVector;
           assign s_address[5] = (s_selectVector0[63:32] == 0) ? 1'b0 : 1'b1;
           assign s_selectVector1 = (s_selectVector0[63:32] == 0) ? s_selectVector0[31:0] : s_selectVector0[63:32];
