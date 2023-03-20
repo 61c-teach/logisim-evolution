@@ -33,13 +33,21 @@ public class RomHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
     return (net.isBus() ? BUS_NAME : NET_NAME) + nets.getNetHdlName(net);
   }
 
-  private void addExtraWires(LineBuffer contents, String newNetName, Netlist nets, ConnectionEnd end) {
+  private void addExtraWires(LineBuffer contents, String newNetName, Netlist nets, ConnectionEnd end, boolean input) {
     // guaranteed to be a bus here, not a net
     contents.add("wire [{{1}}-1:0] {{2}};", end.getNrOfBits(), newNetName);
     Map<String, String> wires = new HashMap<>();
     for (int i = 0; i < end.getNrOfBits(); i++) {
       final var conn = end.get((byte) i);
-      wires.put(atIndex(newNetName, i), atIndex(getNetHdlName(nets, conn.getParentNet()), conn.getParentNetBitIndex()));
+      if (conn.getParentNet() != null) {
+        if (input) {
+          wires.put(atIndex(newNetName, i), atIndex(getNetHdlName(nets, conn.getParentNet()), conn.getParentNetBitIndex()));
+        } else {
+          wires.put(atIndex(getNetHdlName(nets, conn.getParentNet()), conn.getParentNetBitIndex()), atIndex(newNetName, i));
+        }
+      } else if (input) {
+        wires.put(atIndex(newNetName, i), "1'bx");
+      }
     }
     Hdl.addAllWiresSorted(contents, wires);
   }
@@ -61,12 +69,12 @@ public class RomHdlGeneratorFactory extends InlinedHdlGeneratorFactory {
     if (sourceNetName == null) {
       sourceNetName = busPrefix + "_in";
       final var sourceEnd = componentInfo.getEnd(RamAppearance.getAddrIndex(0, attrs));
-      addExtraWires(wiresHdl, sourceNetName, nets, sourceEnd);
+      addExtraWires(wiresHdl, sourceNetName, nets, sourceEnd, true);
     }
     if (destNetName == null) {
       destNetName = busPrefix + "_out";
-      final var sourceEnd = componentInfo.getEnd(RamAppearance.getDataOutIndex(0, attrs));
-      addExtraWires(wiresHdl, destNetName, nets, sourceEnd);
+      final var destEnd = componentInfo.getEnd(RamAppearance.getDataOutIndex(0, attrs));
+      addExtraWires(wiresHdl, destNetName, nets, destEnd, false);
     }
     if (wiresHdl.size() > 0) wiresHdl.empty();
 
