@@ -360,8 +360,13 @@ public class Startup implements AWTEventListener {
       shallClearPreferences = cmd.hasOption(ARG_CLEAR_PREFS_LONG);
     }
     if (!isTty) {
-      // we're using the GUI: Set up the Look&Feel to match the platform
-      System.setProperty("apple.laf.useScreenMenuBar", "true");
+      // Check if using Sonoma and Homebrew OpenJDK
+      // Currently, Homebrew OpenJDK on Sonoma crashes on launch
+      // https://github.com/Homebrew/homebrew-core/issues/150824
+      if (MacCompatibility.isSwingUsingScreenMenuBar()) {
+        // we're using the GUI: Set up the Look&Feel to match the platform
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+      }
       // Initialize graphics acceleration if appropriate
       AppPreferences.handleGraphicsAcceleration();
     }
@@ -1068,5 +1073,4 @@ public class Startup implements AWTEventListener {
       }
     }
   }
-
 } // Startup
