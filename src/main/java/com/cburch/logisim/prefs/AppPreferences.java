@@ -409,6 +409,9 @@ public class AppPreferences {
   private static final PropertyChangeWeakSupport propertySupport =
       new PropertyChangeWeakSupport(AppPreferences.class);
 
+  // Meta preferences
+  public static boolean shouldSync = true;
+
   // Template preferences
   public static final int IconSize = 16;
   public static final int FONT_SIZE = 14;

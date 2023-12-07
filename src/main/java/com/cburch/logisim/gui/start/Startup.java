@@ -157,6 +157,7 @@ public class Startup implements AWTEventListener {
   private static final String ARG_LOCALE_SHORT = "o";
   private static final String ARG_LOCALE_LONG = "locale";
   private static final String ARG_CLEAR_PREFS_LONG = "clear-prefs";
+  private static final String ARG_NO_SYNC_PREFS_LONG = "no-sync-prefs";
   private static final String ARG_SUBSTITUTE_SHORT = "s";
   private static final String ARG_SUBSTITUTE_LONG = "substitute";
   private static final String ARG_LIB_SUBSTITUTE_SHORT = "S";
@@ -323,6 +324,7 @@ public class Startup implements AWTEventListener {
     addOption(opts, "argFpgaHdl", ARG_FPGA_HDL, 1);
     addOption(opts, "argFpgaWorkspace", ARG_FPGA_WORKSPACE, 1);
     addOption(opts, "argClearOption", ARG_CLEAR_PREFS_LONG);
+    addOption(opts, "argNoSyncOption", ARG_NO_SYNC_PREFS_LONG);
     addOption(opts, "argSubOption", ARG_SUBSTITUTE_LONG, ARG_SUBSTITUTE_SHORT, 2);
     addOption(opts, "argLibSubOption", ARG_LIB_SUBSTITUTE_LONG, ARG_LIB_SUBSTITUTE_SHORT, 2);
     addOption(opts, "argLoadOption", ARG_LOAD_LONG, ARG_LOAD_SHORT, 1);
@@ -348,6 +350,11 @@ public class Startup implements AWTEventListener {
       // FIXME: hardcoded string
       logger.error("Failed processing command line arguments.");
       return null;
+    }
+
+    // Set preference sync
+    if (cmd.hasOption(ARG_NO_SYNC_PREFS_LONG)) {
+      AppPreferences.shouldSync = false;
     }
 
     // see whether we'll be using any graphics

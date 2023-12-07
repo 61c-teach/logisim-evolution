@@ -29,6 +29,7 @@ class PrefMonitorDouble extends AbstractPrefMonitor<Double> {
   }
 
   public void preferenceChange(PreferenceChangeEvent event) {
+    if (!shouldSync()) return;
     final var prefs = event.getNode();
     final var prop = event.getKey();
     final var name = getIdentifier();
@@ -43,6 +44,10 @@ class PrefMonitorDouble extends AbstractPrefMonitor<Double> {
   }
 
   public void set(Double newValue) {
+    if (!shouldSync()) {
+      this.value = newValue;
+      return;
+    }
     double newVal = newValue;
     if (value != newVal) {
       AppPreferences.getPrefs().putDouble(getIdentifier(), newVal);

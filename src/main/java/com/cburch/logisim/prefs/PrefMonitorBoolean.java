@@ -39,6 +39,7 @@ public class PrefMonitorBoolean extends AbstractPrefMonitor<Boolean> implements 
   }
 
   public void preferenceChange(PreferenceChangeEvent event) {
+    if (!shouldSync()) return;
     final var prefs = event.getNode();
     final var prop = event.getKey();
     final var name = getIdentifier();
@@ -53,6 +54,10 @@ public class PrefMonitorBoolean extends AbstractPrefMonitor<Boolean> implements 
   }
 
   public void set(Boolean newValue) {
+    if (!shouldSync()) {
+      this.value = newValue;
+      return;
+    }
     if (value != newValue) {
       AppPreferences.getPrefs().putBoolean(getIdentifier(), newValue);
     }

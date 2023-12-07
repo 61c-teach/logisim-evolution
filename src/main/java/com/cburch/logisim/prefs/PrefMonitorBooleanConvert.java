@@ -35,6 +35,7 @@ public class PrefMonitorBooleanConvert extends PrefMonitorBoolean {
 
   @Override
   public void preferenceChange(PreferenceChangeEvent event) {
+    if (!shouldSync()) return;
     final var prefs = event.getNode();
     final var prop = event.getKey();
     final var name = getIdentifier();
