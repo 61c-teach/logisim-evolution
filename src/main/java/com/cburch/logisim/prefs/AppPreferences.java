@@ -479,6 +479,7 @@ public class AppPreferences {
   public static final PrefMonitor<Boolean> REMOVE_UNUSED_LIBRARIES =
       create(new PrefMonitorBoolean("removeUnusedLibs", false));
   // Window preferences
+  public static boolean useScreenMenuBar = true;
   public static final String TOOLBAR_HIDDEN = "hidden";
   public static final PrefMonitor<Boolean> SHOW_TICK_RATE =
       create(new PrefMonitorBoolean("showTickRate", false));

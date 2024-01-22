@@ -173,6 +173,7 @@ public class Startup implements AWTEventListener {
   private static final String ARG_FPGA_HDL = "fpga-hdl";
   private static final String ARG_FPGA_WORKSPACE = "fpga-workspace";
   private static final String ARG_NO_SPLASH_LONG = "no-splash";
+  private static final String ARG_NO_SCREEN_MENU_BAR_LONG = "no-screen-menu-bar";
   private static final String ARG_MAIN_CIRCUIT = "toplevel-circuit";
 
   /**
@@ -337,6 +338,7 @@ public class Startup implements AWTEventListener {
     addOption(opts, "argTestVectorOption", ARG_TEST_VECTOR_LONG, ARG_TEST_VECTOR_SHORT, 2);
     addOption(opts, "argTestCircuitOption", ARG_TEST_CIRCUIT_LONG, ARG_TEST_CIRCUIT_SHORT, 1);     // FIXME add "Option" suffix to key name
     addOption(opts, "argTestCircGenOption", ARG_TEST_CIRC_GEN_LONG, ARG_TEST_CIRC_GEN_SHORT, 2);   // FIXME add "Option" suffix to key name
+    addOption(opts, "argNoScreenMenuBarOption", ARG_NO_SCREEN_MENU_BAR_LONG);
 
     CommandLine cmd;
     try {
@@ -355,6 +357,11 @@ public class Startup implements AWTEventListener {
     // Set preference sync
     if (cmd.hasOption(ARG_NO_SYNC_PREFS_LONG)) {
       AppPreferences.shouldSync = false;
+    }
+
+    // Set force screen menu bar
+    if (cmd.hasOption(ARG_NO_SCREEN_MENU_BAR_LONG)) {
+      AppPreferences.useScreenMenuBar = false;
     }
 
     // see whether we'll be using any graphics
