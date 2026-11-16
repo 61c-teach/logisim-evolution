@@ -32,13 +32,9 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
     else return "\"" + s + "\"";
   }
 
-  private static String verilogBits(char[] b) {
+  private static String msbFirst(char[] b, char dontCare) {
     final var s = new StringBuilder();
-    s.append(b.length);
-    s.append("'b");
-    for (final var c : b) {
-      s.append(c == '0' || c == '1' ? c : '?');
-    }
+    for (final var c : b) s.insert(0, (c == '0' || c == '1') ? c : dontCare);
     return s.toString();
   }
 
@@ -68,14 +64,32 @@ public class PlaHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
         contents.add("{{1}}{{2}};", leader, zeros(outSz));
       }
     } else {
-      contents.add("casez (index)");
-
-      for (var r : tt.rows()) {
-        contents.add("  {{1}}: result = {{2}};", verilogBits(r.inBits), verilogBits(r.outBits));
+      // 61C: plain Verilog-2005 (no casez outside always, valid zero literal), first matching row wins.
+      contents.add("reg [{{1}}:0] temp;", outSz - 1);
+      contents.add("always @(*) begin");
+      if (tt.rows().isEmpty()) {
+        contents.add("   temp = {{1}};", Hdl.getZeroVector(outSz, true));
+      } else {
+        var leader = "   if ";
+        for (final var r : tt.rows()) {
+          final var ifCondition = new java.util.ArrayList<String>();
+          for (var i = 0; i < r.inBits.length; i++) {
+            if (r.inBits[i] != '0' && r.inBits[i] != '1') continue;
+            ifCondition.add(String.format("index[%d] == 1'b%c", i, r.inBits[i]));
+          }
+          final var cond = ifCondition.isEmpty() ? "1'b1" : String.join(" && ", ifCondition);
+          contents.add(leader + "({{1}}) begin", cond);
+          contents.add("      // index ==? {{1}}", msbFirst(r.inBits, '?'));
+          contents.add("      temp = {{1}}'b{{2}};", outSz, msbFirst(r.outBits, '0'));
+          contents.add("   end");
+          leader = "   else if ";
+        }
+        contents.add("   else begin");
+        contents.add("      temp = {{1}};", Hdl.getZeroVector(outSz, true));
+        contents.add("   end");
       }
-
-      contents.add("  default: result = {{1}}'0;", tt.outSize());
-      contents.add("endcase");
+      contents.add("end");
+      contents.add("assign result = temp;");
     }
     return contents.empty();
   }

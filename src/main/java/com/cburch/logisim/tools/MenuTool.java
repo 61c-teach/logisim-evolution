@@ -52,6 +52,7 @@ public class MenuTool extends Tool {
       this.circ = circ;
       this.comp = comp;
       boolean canChange = proj.getLogisimFile().contains(circ);
+      canChange &= !comp.isLocked();
 
       if (comp.getAttributeSet().containsAttribute(StdAttr.FACING)) {
         add(rotateLeft);
@@ -106,6 +107,7 @@ public class MenuTool extends Tool {
     MenuSelection(Project proj) {
       this.proj = proj;
       boolean canChange = proj.getLogisimFile().contains(proj.getCurrentCircuit());
+      canChange &= !proj.getSelection().hasLocked();
       add(del);
       del.addActionListener(this);
       del.setEnabled(canChange);

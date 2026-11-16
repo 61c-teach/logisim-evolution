@@ -9,6 +9,8 @@
 
 package com.cburch.logisim.util;
 
+import com.cburch.logisim.prefs.AppPreferences;
+
 import java.awt.Desktop;
 import javax.swing.JMenuBar;
 
@@ -16,7 +18,15 @@ public final class MacCompatibility {
 
   private static final boolean runningOnMac =
       System.getProperty("os.name").toLowerCase().contains("mac");
-  private static boolean usingScreenMenuBar = runningOnMac;
+
+  private static final boolean runningOnMacAndSonomaOpenJDK =
+      runningOnMac
+        && System.getProperty("os.version").startsWith("14")
+        && (System.getProperty("java.vendor").toLowerCase().startsWith("homebrew")
+              || System.getProperty("java.vendor").toLowerCase().startsWith("eclipse adoptium"))
+        && System.getProperty("java.runtime.name").toLowerCase().startsWith("openjdk");
+
+  private static boolean usingScreenMenuBar = runningOnMac && AppPreferences.useScreenMenuBar && !runningOnMacAndSonomaOpenJDK;
 
   private MacCompatibility() {
     throw new IllegalStateException("Utility class. No instantiation allowed.");
@@ -45,7 +55,7 @@ public final class MacCompatibility {
   public static void setFramelessJMenuBar(JMenuBar menubar) {
     try {
       // DHH This method allows the app to run without a frame on the Mac. The menu will still show.
-      if (runningOnMac) {
+      if (usingScreenMenuBar) {
         Desktop.getDesktop().setDefaultMenuBar(menubar);
       }
     } catch (Exception t) {

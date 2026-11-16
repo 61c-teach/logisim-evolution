@@ -54,7 +54,8 @@ public class LayoutEditHandler extends EditHandler
     final var proj = frame.getProject();
     final var sel = proj == null ? null : proj.getSelection();
     final var selEmpty = (sel == null || sel.isEmpty());
-    final var canChange = proj != null && proj.getLogisimFile().contains(proj.getCurrentCircuit());
+    var canChange = proj != null && proj.getLogisimFile().contains(proj.getCurrentCircuit());
+    canChange &= (sel != null && !sel.hasLocked());
     final var textEditActions = getTextEditActions();
 
     var selectAvailable = false;

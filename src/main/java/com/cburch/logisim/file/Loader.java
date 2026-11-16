@@ -10,6 +10,8 @@
 package com.cburch.logisim.file;
 
 import static com.cburch.logisim.file.Strings.S;
+
+import com.cburch.logisim.Main;
 import com.cburch.logisim.gui.generic.OptionPane;
 import com.cburch.logisim.std.Builtin;
 import com.cburch.logisim.tools.Library;
@@ -151,6 +153,7 @@ public class Loader implements LibraryLoader {
   private final Stack<File> filesOpening = new Stack<>();
   private Map<File, File> substitutions = new HashMap<>();
   private ZipOutputStream zipFile;
+  private Map<String, String> libSubstitutions = new HashMap<>();
 
   public Loader(Component parent) {
     this.parent = parent;
@@ -242,6 +245,10 @@ public class Loader implements LibraryLoader {
       if (currentDirectory != null) file = new File(currentDirectory, normalizedName);
     }
     while (!file.canRead()) {
+      if (!Main.hasGui()) {
+        throw new LoaderException(
+          String.format(S.get("fileLibraryMissingError"), file.getName()));
+      }
       // It doesn't exist. Figure it out from the user.
       OptionPane.showMessageDialog(
           parent, String.format(S.get("fileLibraryMissingError"), file.getName()));
@@ -266,6 +273,11 @@ public class Loader implements LibraryLoader {
 
   private File getSubstitution(File source) {
     final var ret = substitutions.get(source);
+    return ret == null ? source : ret;
+  }
+
+  private String getLibSubstitution(String source) {
+    final var ret = libSubstitutions.get(source);
     return ret == null ? source : ret;
   }
 
@@ -306,7 +318,8 @@ public class Loader implements LibraryLoader {
   //
   @Override
   public Library loadLibrary(String desc) {
-    return LibraryManager.instance.loadLibrary(this, desc);
+    String actual = getLibSubstitution(desc);
+    return LibraryManager.instance.loadLibrary(this, actual);
   }
 
   //
@@ -355,13 +368,15 @@ public class Loader implements LibraryLoader {
     }
   }
 
-  public LogisimFile openLogisimFile(File file, Map<File, File> substitutions)
+  public LogisimFile openLogisimFile(File file, Map<File, File> substitutions, Map<String, String> libSubstitutions)
       throws LoadFailedException {
     this.substitutions = substitutions;
+    this.libSubstitutions = libSubstitutions;
     try {
       return openLogisimFile(file);
     } finally {
       this.substitutions = Collections.emptyMap();
+      this.libSubstitutions = Collections.emptyMap();
     }
   }
 

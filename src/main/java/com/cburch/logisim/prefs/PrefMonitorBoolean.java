@@ -71,6 +71,7 @@ public class PrefMonitorBoolean extends AbstractPrefMonitor<Boolean> implements 
    * @param event The event indicating a preference change.
    */
   public void preferenceChange(PreferenceChangeEvent event) {
+    if (!shouldSync()) return;
     final var prefs = event.getNode();
     final var prop = event.getKey();
     final var name = getIdentifier();
@@ -91,6 +92,10 @@ public class PrefMonitorBoolean extends AbstractPrefMonitor<Boolean> implements 
    * @param newValue The new value to set.
    */
   public void set(Boolean newValue) {
+    if (!shouldSync()) {
+      this.value = newValue;
+      return;
+    }
     if (value != newValue) {
       AppPreferences.getPrefs().putBoolean(getIdentifier(), newValue);
     }

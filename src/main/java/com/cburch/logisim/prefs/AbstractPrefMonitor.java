@@ -77,4 +77,8 @@ abstract class AbstractPrefMonitor<E> implements PrefMonitor<E> {
     E valObj = (E) Boolean.valueOf(value);
     set(valObj);
   }
+
+  protected boolean shouldSync() {
+    return AppPreferences.shouldSync;
+  }
 }

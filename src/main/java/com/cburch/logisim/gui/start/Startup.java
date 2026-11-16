@@ -17,6 +17,7 @@ import com.cburch.logisim.file.Loader;
 import com.cburch.logisim.file.LogisimFileActions;
 import com.cburch.logisim.fpga.download.Download;
 import com.cburch.logisim.fpga.file.BoardReaderClass;
+import com.cburch.logisim.fpga.hdlgenerator.HdlGeneratorFactory;
 import com.cburch.logisim.generated.BuildInfo;
 import com.cburch.logisim.gui.generic.CanvasPane;
 import com.cburch.logisim.gui.generic.OptionPane;
@@ -91,6 +92,7 @@ public class Startup implements AWTEventListener {
   private static Startup startupTemp = null;
   private final ArrayList<File> filesToOpen = new ArrayList<>();
   private final HashMap<File, File> substitutions = new HashMap<>();
+  private final HashMap<String, String> libSubstitutions = new HashMap<>();
   private final ArrayList<File> filesToPrint = new ArrayList<>();
   // based on command line
   final boolean isTty;
@@ -98,6 +100,8 @@ public class Startup implements AWTEventListener {
   private boolean templEmpty = false;
   private boolean templPlain = false;
   private String testVector = null;
+  private File vcdFile = null;
+  private File vcdRefFile = null;
   private String circuitToTest = null;
   private boolean exitAfterStartup = false;
   private boolean quitAfterParsing = false;
@@ -127,13 +131,16 @@ public class Startup implements AWTEventListener {
   private final String testCircuitImpMapFile = null;
   /* Indicate if only the HDL should be generated */
   private Boolean testCircuitHdlOnly = false;
+  /* Annotation for HDL generation */
+  private Boolean annotateCircuit = false;
+  private Boolean forceDownload = false;
   /* Testing Xml (circ file) Variable */
   private String testCircPathInput = null;
   private String testCircPathOutput = null;
 
-  private Startup(boolean isTty) {
+  private Startup(boolean isTty, boolean hasGui) {
     this.isTty = isTty;
-    this.showSplash = !isTty;
+    this.showSplash = hasGui;
   }
 
   static void doOpen(File file) {
@@ -167,8 +174,11 @@ public class Startup implements AWTEventListener {
   private static final String ARG_LOCALE_SHORT = "o";
   private static final String ARG_LOCALE_LONG = "locale";
   private static final String ARG_CLEAR_PREFS_LONG = "clear-prefs";
+  private static final String ARG_NO_SYNC_PREFS_LONG = "no-sync-prefs";
   private static final String ARG_SUBSTITUTE_SHORT = "s";
   private static final String ARG_SUBSTITUTE_LONG = "substitute";
+  private static final String ARG_LIB_SUBSTITUTE_SHORT = "S";
+  private static final String ARG_LIB_SUBSTITUTE_LONG = "lib-substitute";
   private static final String ARG_TTY_SHORT = "t";
   private static final String ARG_TTY_LONG = "tty";
   private static final String ARG_TEMPLATE_SHORT = "u";
@@ -177,7 +187,12 @@ public class Startup implements AWTEventListener {
   private static final String ARG_VERSION_LONG = "version";
   private static final String ARG_TEST_VECTOR_SHORT = "w";
   private static final String ARG_TEST_VECTOR_LONG = "test-vector";
+  private static final String ARG_FPGA_HDL = "fpga-hdl";
+  private static final String ARG_FPGA_WORKSPACE = "fpga-workspace";
   private static final String ARG_NO_SPLASH_LONG = "no-splash";
+  private static final String ARG_NO_SCREEN_MENU_BAR_LONG = "no-screen-menu-bar";
+  private static final String ARG_VCD_LONG = "vcd";
+  private static final String ARG_VCD_REF_LONG = "vcd-ref";
   private static final String ARG_MAIN_CIRCUIT = "toplevel-circuit";
 
   /**
@@ -327,8 +342,12 @@ public class Startup implements AWTEventListener {
     addOption(opts, "argTtyOption", ARG_TTY_LONG, ARG_TTY_SHORT, 1);
     addOption(opts, "argTestImplement", ARG_TEST_FGPA_LONG, ARG_TEST_FGPA_SHORT, Option.UNLIMITED_VALUES);  // We can have 3, 4 or 5 arguments here
     addOption(opts, "argFpgaCableOption", ARG_FPGA_CABLE_LONG, 1);
+    addOption(opts, "argFpgaHdl", ARG_FPGA_HDL, 1);
+    addOption(opts, "argFpgaWorkspace", ARG_FPGA_WORKSPACE, 1);
     addOption(opts, "argClearOption", ARG_CLEAR_PREFS_LONG);
+    addOption(opts, "argNoSyncOption", ARG_NO_SYNC_PREFS_LONG);
     addOption(opts, "argSubOption", ARG_SUBSTITUTE_LONG, ARG_SUBSTITUTE_SHORT, 2);
+    addOption(opts, "argLibSubOption", ARG_LIB_SUBSTITUTE_LONG, ARG_LIB_SUBSTITUTE_SHORT, 2);
     addOption(opts, "argLoadOption", ARG_LOAD_LONG, ARG_LOAD_SHORT, Option.UNLIMITED_VALUES); // We can have 1 or 2 arguments here
     addOption(opts, "argSaveOption", ARG_SAVE_LONG, 1);
     addOption(opts, "argGatesOption", ARG_GATES_LONG, ARG_GATES_SHORT, 1);
@@ -340,6 +359,9 @@ public class Startup implements AWTEventListener {
     addOption(opts, "argTestVectorOption", ARG_TEST_VECTOR_LONG, ARG_TEST_VECTOR_SHORT, 2);
     addOption(opts, "argTestCircuitOption", ARG_TEST_CIRCUIT_LONG, ARG_TEST_CIRCUIT_SHORT, 1);     // FIXME add "Option" suffix to key name
     addOption(opts, "argTestCircGenOption", ARG_TEST_CIRC_GEN_LONG, ARG_TEST_CIRC_GEN_SHORT, 2);   // FIXME add "Option" suffix to key name
+    addOption(opts, "argNoScreenMenuBarOption", ARG_NO_SCREEN_MENU_BAR_LONG);
+    addOption(opts, "argVcdOption", ARG_VCD_LONG, 1);
+    addOption(opts, "argVcdRefOption", ARG_VCD_REF_LONG, 1);
 
     CommandLine cmd;
     try {
@@ -355,6 +377,16 @@ public class Startup implements AWTEventListener {
       return null;
     }
 
+    // Set preference sync
+    if (cmd.hasOption(ARG_NO_SYNC_PREFS_LONG)) {
+      AppPreferences.shouldSync = false;
+    }
+
+    // Set force screen menu bar
+    if (cmd.hasOption(ARG_NO_SCREEN_MENU_BAR_LONG)) {
+      AppPreferences.useScreenMenuBar = false;
+    }
+
     // see whether we'll be using any graphics
     var isTty = false;
     var shallClearPreferences = false;
@@ -364,16 +396,20 @@ public class Startup implements AWTEventListener {
     } else {
       shallClearPreferences = cmd.hasOption(ARG_CLEAR_PREFS_LONG);
     }
-
     if (!isTty) {
-      // we're using the GUI: Set up the Look&Feel to match the platform
-      System.setProperty("apple.laf.useScreenMenuBar", "true");
+      // Check if using Sonoma and Homebrew OpenJDK
+      // Currently, Homebrew OpenJDK on Sonoma crashes on launch
+      // https://github.com/Homebrew/homebrew-core/issues/150824
+      if (MacCompatibility.isSwingUsingScreenMenuBar()) {
+        // we're using the GUI: Set up the Look&Feel to match the platform
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+      }
       // Initialize graphics acceleration if appropriate
       AppPreferences.handleGraphicsAcceleration();
     }
 
     // Initialize startup object.
-    final var startup = new Startup(isTty);
+    final var startup = new Startup(isTty, Main.hasGui());
     startupTemp = startup;
     if (!isTty) {
       MacOsAdapter.addListeners();
@@ -395,6 +431,7 @@ public class Startup implements AWTEventListener {
         case ARG_VERSION_LONG -> printVersion();
         case ARG_TTY_LONG -> handleArgTty(startup, opt);
         case ARG_SUBSTITUTE_LONG -> handleArgSubstitute(startup, opt);
+        case ARG_LIB_SUBSTITUTE_LONG -> handleArgLibSubstitute(startup, opt);
         case ARG_LOAD_LONG -> handleArgLoad(startup, opt);
         case ARG_SAVE_LONG -> handleArgSave(startup, opt);
         case ARG_GATES_LONG -> handleArgGates(startup, opt);
@@ -402,12 +439,16 @@ public class Startup implements AWTEventListener {
         case ARG_LOCALE_LONG -> handleArgLocale(startup, opt);
         case ARG_TEMPLATE_LONG -> handleArgTemplate(startup, opt);
         case ARG_NO_SPLASH_LONG -> handleArgNoSplash(startup, opt);
+        case ARG_FPGA_WORKSPACE -> handleArgFpgaWorkspace(startup, opt);
+        case ARG_FPGA_HDL -> handleArgFpgaHdl(startup, opt);
         case ARG_TEST_VECTOR_LONG -> handleArgTestVector(startup, opt);
         case ARG_TEST_FGPA_LONG -> handleArgTestFpga(startup, opt);
         case ARG_FPGA_CABLE_LONG -> handleArgFpgaCable(startup, opt);
         case ARG_TEST_CIRCUIT_LONG -> handleArgTestCircuit(startup, opt);
         case ARG_TEST_CIRC_GEN_LONG -> handleArgTestCircGen(startup, opt);
         case ARG_MAIN_CIRCUIT -> handleArgMainCircuit(startup, opt);
+        case ARG_VCD_LONG -> handleArgVcd(startup, opt);
+        case ARG_VCD_REF_LONG -> handleArgVcdRef(startup, opt);
         default -> RC.OK; // should not really happen IRL.
       };
       switch (optHandlerRc) {
@@ -527,6 +568,17 @@ public class Startup implements AWTEventListener {
     final var fileB = new File(opt.getValues()[1]);
     if (!startup.substitutions.containsKey(fileA)) {
       startup.substitutions.put(fileA, fileB);
+      return RC.OK;
+    }
+
+    // FIXME: warning should be sufficient here maybe?
+    logger.error(S.get("argDuplicateSubstitutionError"));
+    return RC.ERROR;
+  }
+
+  private static RC handleArgLibSubstitute(Startup startup, Option opt) {
+    if (!startup.libSubstitutions.containsKey(opt.getValues()[0])) {
+      startup.libSubstitutions.put(opt.getValues()[0], opt.getValues()[1]);
       return RC.OK;
     }
 
@@ -682,12 +734,39 @@ public class Startup implements AWTEventListener {
     return RC.OK;
   }
 
+  private static RC handleArgFpgaWorkspace(Startup startup, Option opt) {
+    AppPreferences.FPGA_Workspace.set(opt.getValue());
+    return RC.OK;
+  }
+
+  private static RC handleArgFpgaHdl(Startup startup, Option opt) {
+    if (opt.getValue().toUpperCase().equals("VERILOG")) {
+      AppPreferences.HdlType.set(HdlGeneratorFactory.VERILOG);
+    } else if (opt.getValue().toUpperCase().equals("VHDL")) {
+      AppPreferences.HdlType.set(HdlGeneratorFactory.VHDL);
+    } else {
+      logger.error("Unexpected argument to --fpga-hdl flag, must be VERILOG or VHDL");
+      return RC.ERROR;
+    }
+    return RC.OK;
+  }
+
   private static RC handleArgTestVector(Startup startup, Option opt) {
     startup.circuitToTest = opt.getValues()[0];
     startup.testVector = opt.getValues()[1];
     startup.showSplash = false;
     startup.exitAfterStartup = true;
     // This is to test a test bench. It will return 0 or 1 depending on if the tests pass or not.
+    return RC.OK;
+  }
+
+  private static RC handleArgVcd(Startup startup, Option opt) {
+    startup.vcdFile = new File(opt.getValue());
+    return RC.OK;
+  }
+
+  private static RC handleArgVcdRef(Startup startup, Option opt) {
+    startup.vcdRefFile = new File(opt.getValue());
     return RC.OK;
   }
 
@@ -698,15 +777,12 @@ public class Startup implements AWTEventListener {
 
 
   /**
-   * Handles 4th argument of `--test-fpga` argument which can be either string literal
+   * Handles 4th and later  argument of `--test-fpga` argument which can be either string literal
    * or tick frequency.
    *
-   * Supported argument formats for `--test-fpga`:<br /><br />
+   * Supported argument formats for `--test-fpga` (optional arguments can be in any order):<br /><br />
    * * circ_file name board<br />
-   * * circ_file name board [HDLONLY]<br />
-   * * circ_file name board [HDLONLY] [tick frequency]<br />
-   * * circ_file name board [tick_freq]<br />
-   * * circ_file name board [tick_freq] [HDLONLY]<br />
+   * * circ_file name board [HDLONLY] [ANNOTATE] [FORCEDOWNLOAD] [tick frequency]<br />
    * <br />
    * where:
    * <br /><br />
@@ -715,12 +791,20 @@ public class Startup implements AWTEventListener {
    * * `board` is connected FPGA board name.<br />
    * * `tick_freq` is optional tick frequency.<br />
    * * `HDLONLY` (literal), uses HDL only.<br />
+   * * `ANNOTATE` (literal), annotates circuit.<br />
+   * * `FORCEDOWNLOAD` (literal), downloads without opening a GUI interface.<br />
    */
   private static RC handleArgTestFpgaParseArg(Startup startup, String argVal) {
     if ("HDLONLY".equals(argVal)) {
-      if (!testFpgaFlagTickFreqSet) {
-        startup.testCircuitHdlOnly = true;
-      }
+      startup.testCircuitHdlOnly = true;
+      return RC.OK;
+    }
+    if ("ANNOTATE".equals(argVal)) {
+        startup.annotateCircuit = true;
+      return RC.OK;
+    }
+    if ("FORCEDOWNLOAD".equals(argVal)) {
+      startup.forceDownload = true;
       return RC.OK;
     }
 
@@ -752,7 +836,7 @@ public class Startup implements AWTEventListener {
     }
 
     final var argsCnt = optArgs.length;
-    if (argsCnt < 3 || argsCnt > 5) {
+    if (argsCnt < 3 || argsCnt > 7) {
       logger.error(S.get("argTestInvalidArguments"));
       return RC.ERROR;
     }
@@ -763,12 +847,8 @@ public class Startup implements AWTEventListener {
     startup.testCircuitImpBoard = optArgs[2];
 
     var handlerRc = RC.OK;
-    if (argsCnt >= 4) {
-      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[3]);
-      if (handlerRc == RC.ERROR) return handlerRc;
-    }
-    if (argsCnt >= 5) {
-      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[4]);
+    for (int i = 3; i < argsCnt; i++) {
+      handlerRc = handleArgTestFpgaParseArg(startup, optArgs[i]);
       if (handlerRc == RC.ERROR) return handlerRc;
     }
 
@@ -866,6 +946,18 @@ public class Startup implements AWTEventListener {
     return Collections.unmodifiableMap(substitutions);
   }
 
+  Map<String, String> getLibSubstitutions() {
+    return Collections.unmodifiableMap(libSubstitutions);
+  }
+
+  File getVcdFile() {
+    return vcdFile;
+  }
+
+  File getVcdRefFile() {
+    return vcdRefFile;
+  }
+
   int getTtyFormat() {
     return ttyFormat;
   }
@@ -900,6 +992,10 @@ public class Startup implements AWTEventListener {
             1.0,
             1.0,
             fpgaCableName);
+    downloader.setForceDownload(forceDownload);
+    if (annotateCircuit) {
+      downloader.annotateCircuit(false);
+    }
     return downloader.runTty();
   }
 
@@ -921,6 +1017,7 @@ public class Startup implements AWTEventListener {
     if (isTty) {
       var exitCode = TtyInterface.EXIT_FAILURE;
       try {
+        System.setProperty("apple.awt.UIElement", "true");
         exitCode = TtyInterface.run(this);
       } catch (Exception t) {
         t.printStackTrace();
@@ -971,28 +1068,30 @@ public class Startup implements AWTEventListener {
     if (showSplash) {
       monitor.setProgress(SplashScreen.GUI_INIT);
     }
-    WindowManagers.initialize();
-    DoubleShiftTrigger.install();
-    if (MacCompatibility.isSwingUsingScreenMenuBar()) {
-      MacCompatibility.setFramelessJMenuBar(new LogisimMenuBar(null, null, null, null));
-    } else {
-      new LogisimMenuBar(null, null, null, null);
-      // most of the time occupied here will be in loading menus, which
-      // will occur eventually anyway; we might as well do it when the
-      // monitor says we are
-    }
+    if (Main.hasGui()) {
+      WindowManagers.initialize();
+      DoubleShiftTrigger.install();
+      if (MacCompatibility.isSwingUsingScreenMenuBar()) {
+        MacCompatibility.setFramelessJMenuBar(new LogisimMenuBar(null, null, null, null));
+      } else {
+        new LogisimMenuBar(null, null, null, null);
+        // most of the time occupied here will be in loading menus, which
+        // will occur eventually anyway; we might as well do it when the
+        // monitor says we are
+      }
 
-    // Make ENTER and SPACE have the same effect for focused buttons.
-    UIManager.getDefaults()
-        .put(
-            "Button.focusInputMap",
-            new UIDefaults.LazyInputMap(
-                new Object[] {
-                  "ENTER", "pressed",
-                  "released ENTER", "released",
-                  "SPACE", "pressed",
-                  "released SPACE", "released"
-                }));
+      // Make ENTER and SPACE have the same effect for focused buttons.
+      UIManager.getDefaults()
+          .put(
+              "Button.focusInputMap",
+              new UIDefaults.LazyInputMap(
+                  new Object[] {
+                    "ENTER", "pressed",
+                    "released ENTER", "released",
+                    "SPACE", "pressed",
+                    "released SPACE", "released"
+                  }));
+    }
 
     // if user has double-clicked a file to open, we'll
     // use that as the file to open now.
@@ -1091,7 +1190,7 @@ public class Startup implements AWTEventListener {
           } else if (testCircPathInput != null && testCircPathOutput != null) {
             /* This part of the function will create a new circuit file (
              * XML) which will be open and saved again using the  */
-            proj = ProjectActions.doOpen(monitor, fileToOpen, substitutions);
+            proj = ProjectActions.doOpen(monitor, fileToOpen, substitutions, libSubstitutions);
 
             ProjectActions.doSave(proj, new File(testCircPathOutput));
           } else if (testCircuitPathInput != null) {
@@ -1109,7 +1208,7 @@ public class Startup implements AWTEventListener {
               System.exit(-1);
             }
           } else {
-            ProjectActions.doOpen(monitor, fileToOpen, substitutions);
+            ProjectActions.doOpen(monitor, fileToOpen, substitutions, libSubstitutions);
           }
           numOpened++;
         } catch (LoadFailedException ex) {
@@ -1194,5 +1293,4 @@ public class Startup implements AWTEventListener {
       }
     }
   }
-
 } // Startup

@@ -61,6 +61,7 @@ class PrefMonitorStringOpts extends AbstractPrefMonitor<String> {
    * @param event The preference change event.
    */
   public void preferenceChange(PreferenceChangeEvent event) {
+    if (!shouldSync()) return;
     final var prefs = event.getNode();
     final var prop = event.getKey();
     final var name = getIdentifier();
@@ -83,6 +84,10 @@ class PrefMonitorStringOpts extends AbstractPrefMonitor<String> {
    * @param newValue The new value for the preference.
    */
   public void set(String newValue) {
+    if (!shouldSync()) {
+      this.value = choose(newValue);
+      return;
+    }
     final var chosen = choose(newValue);
     if (!isSame(value, chosen)) {
       final var oldValue = value;

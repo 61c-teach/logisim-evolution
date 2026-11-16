@@ -302,6 +302,7 @@ class CircuitHdlGeneratorFactoryTest extends TestBase {
     when(connectedNet.getBitWidth()).thenReturn(1);
     when(netlist.isContinuesBus(component, 0)).thenReturn(false);
     when(netlist.getNetId(connectedNet)).thenReturn(7);
+    when(netlist.getNetHdlName(connectedNet)).thenReturn("7");
 
     final var signal =
         CircuitHdlGeneratorFactory.getSignalMap("output", component, 0, netlist);

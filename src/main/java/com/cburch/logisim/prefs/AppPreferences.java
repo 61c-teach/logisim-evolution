@@ -487,6 +487,9 @@ public class AppPreferences {
   private static final PropertyChangeWeakSupport propertySupport =
       new PropertyChangeWeakSupport(AppPreferences.class);
 
+  // Meta preferences
+  public static boolean shouldSync = true;
+
   // Autosave preferences
   public static final String AUTOSAVE_ENABLE = "autosaveEnabled";
   public static final String AUTOSAVE_PERIOD = "autosaveInterval";
@@ -569,6 +572,7 @@ public class AppPreferences {
   public static final PrefMonitor<Boolean> REMOVE_UNUSED_LIBRARIES =
       create(new PrefMonitorBoolean("removeUnusedLibs", false));
   // Window preferences
+  public static boolean useScreenMenuBar = true;
   public static final String TOOLBAR_HIDDEN = "hidden";
   public static final PrefMonitor<Boolean> SHOW_TICK_RATE =
       create(new PrefMonitorBoolean("showTickRate", false));
@@ -869,11 +873,11 @@ public class AppPreferences {
     POKE_WIRE_RADIX1 =
         create(
             new PrefMonitorStringOpts(
-                "pokeRadix1", radixStrings, RadixOption.RADIX_2.getSaveString()));
+                "pokeRadix1", radixStrings, RadixOption.RADIX_16.getSaveString()));
     POKE_WIRE_RADIX2 =
         create(
             new PrefMonitorStringOpts(
-                "pokeRadix2", radixStrings, RadixOption.RADIX_10_SIGNED.getSaveString()));
+                "pokeRadix2", radixStrings, RadixOption.RADIX_10_UNSIGNED.getSaveString()));
   }
 
   public static final PrefMonitor<Boolean> Memory_Startup_Unknown =
@@ -1267,10 +1271,8 @@ public class AppPreferences {
       create(new PrefMonitorKeyStroke("hotkeyAddToolRotate", KeyEvent.VK_R, 0));
 
   public static final PrefMonitor<KeyStroke> HOTKEY_GATE_MODIFIER_SIZE_SMALL =
-      create(new PrefMonitorKeyStroke("hotkeyGateModifierSizeSmall", new KeyStroke[] {
-          KeyStroke.getKeyStroke(KeyEvent.VK_S, 0),
-          KeyStroke.getKeyStroke(KeyEvent.VK_N, 0),
-      }));
+      // 61C: "S" removed so it doesn't shrink gates by accident (only "N")
+      create(new PrefMonitorKeyStroke("hotkeyGateModifierSizeSmall", KeyEvent.VK_N, 0));
 
   public static final PrefMonitor<KeyStroke> HOTKEY_GATE_MODIFIER_SIZE_MEDIUM =
       create(new PrefMonitorKeyStroke("hotkeyGateModifierSizeMedium", KeyEvent.VK_M, 0));
@@ -1339,10 +1341,8 @@ public class AppPreferences {
       HOTKEY_AUTO_LABEL_VIEW.set(KeyStroke.getKeyStroke(KeyEvent.VK_V, 0));
       HOTKEY_AUTO_LABEL_HIDE.set(KeyStroke.getKeyStroke(KeyEvent.VK_H, 0));
       HOTKEY_ADD_TOOL_ROTATE.set(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0));
-      ((PrefMonitorKeyStroke) HOTKEY_GATE_MODIFIER_SIZE_SMALL).set(new KeyStroke[] {
-          KeyStroke.getKeyStroke(KeyEvent.VK_S, 0),
-          KeyStroke.getKeyStroke(KeyEvent.VK_N, 0),
-      });
+      // 61C: no "S" here either, matching the default above
+      HOTKEY_GATE_MODIFIER_SIZE_SMALL.set(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0));
       HOTKEY_GATE_MODIFIER_SIZE_MEDIUM.set(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0));
       HOTKEY_GATE_MODIFIER_SIZE_WIDE.set(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0));
       ((PrefMonitorKeyStroke) HOTKEY_GATE_MODIFIER_INPUT_ADD).set(new KeyStroke[] {

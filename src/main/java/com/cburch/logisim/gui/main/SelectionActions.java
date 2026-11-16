@@ -25,6 +25,7 @@ import com.cburch.logisim.proj.Action;
 import com.cburch.logisim.proj.JoinedAction;
 import com.cburch.logisim.proj.Project;
 import com.cburch.logisim.std.base.Text;
+import com.cburch.logisim.std.wiring.Pin;
 import com.cburch.logisim.tools.AddTool;
 import com.cburch.logisim.tools.Library;
 import com.cburch.logisim.vhdl.base.VhdlEntity;
@@ -261,6 +262,16 @@ public class SelectionActions {
         xnForward.execute();
       }
     }
+  }
+
+  public static boolean confirmAddPinToLocked() {
+    int option = OptionPane.showConfirmDialog(
+        null,
+        S.get("confirmAddPinToLockedMessage"),
+        S.get("confirmAddPinToLockedTitle"),
+        OptionPane.YES_NO_OPTION,
+        OptionPane.WARNING_MESSAGE);
+    return option == OptionPane.YES_OPTION;
   }
 
   /**
@@ -518,6 +529,21 @@ public class SelectionActions {
 
       final var canvas = proj.getFrame().getCanvas();
       final var circ = canvas.getCircuit();
+
+      if (circ.hasLockedPins()) {
+        for (Component c : comps) {
+          if (c.getFactory() == Pin.FACTORY) {
+            if (!SelectionActions.confirmAddPinToLocked()) return;
+            break;
+          }
+        }
+      }
+      for (Component c : comps) {
+        if (c.isLocked()) {
+          canvas.setErrorMessage(com.cburch.logisim.tools.Strings.S.getter("cannotModifyLockedError"));
+          return;
+        }
+      }
 
       /* Check if instantiated circuits are one of the parent circuits */
       for (final var c : comps) {

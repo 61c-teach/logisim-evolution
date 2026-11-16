@@ -32,7 +32,7 @@ class PriorityEncoderHdlGeneratorFactoryTest {
   void verilogCopiesFullInputVectorIntoSelectionTree() {
     final var hdl = functionality(HdlGeneratorFactory.VERILOG, 3);
 
-    assertTrue(hdl.contains("assign s_selectVector0[63:nrOfInputBits] = 0;"));
+    assertTrue(hdl.contains("assign s_selectVector0[64:nrOfInputBits] = 0;")); // 61C: 65 bits so 64 inputs work
     assertTrue(hdl.contains("assign s_selectVector0[nrOfInputBits-1:0] = inputVector;"));
     assertTrue(
         hdl.contains(
@@ -57,7 +57,7 @@ class PriorityEncoderHdlGeneratorFactoryTest {
   private static String functionality(String hdlType, int selectBits) {
     AppPreferences.HdlType.set(hdlType);
     final var attrs = new PriorityEncoder().createAttributeSet();
-    attrs.setValue(PlexersLibrary.ATTR_SELECT, BitWidth.create(selectBits));
+    attrs.setValue(PlexersLibrary.ATTR_SELECT_ENC, BitWidth.create(selectBits));
     return String.join(
         "\n", new PriorityEncoderHdlGeneratorFactory().getModuleFunctionality(null, attrs).get());
   }

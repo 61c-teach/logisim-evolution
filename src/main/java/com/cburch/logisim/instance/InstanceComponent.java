@@ -419,6 +419,11 @@ public final class InstanceComponent implements Component, AttributeListener, To
   }
 
   @Override
+  public boolean isLocked() {
+    Boolean isLocked = getAttributeSet().getValue(StdAttr.LOCKED);
+    return isLocked != null && isLocked.booleanValue();
+  }
+
   public void propagate(CircuitState state) {
     // Reusable allowed as this is the start of the propagation for this state.
     // This accounts for up to 90% of the speedup by reusing.

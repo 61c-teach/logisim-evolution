@@ -96,7 +96,8 @@ public class LogisimVersionTest extends TestBase {
     // Given the set of invalid version stsrings
     final String[] tests = {
       "1.1.2_tvTpQEMCNVUAVI", // "_" is not a valid separator
-      "1.1.2-8GtvTpQEMCNVUAVI", // "-" is valid separator, but suffix must start with a letter.
+      // 61C: suffixes may start with a digit and contain dots (e.g. "5.0.0-61c.dev"), so
+      // "1.1.2-8GtvTpQEMCNVUAVI" is valid here.
       "1.1.2-", // Too short
     };
 

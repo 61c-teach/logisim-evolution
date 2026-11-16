@@ -677,8 +677,11 @@ public class Netlist {
       progress.setValue(1);
       progress.setString(S.get("NetListBuild", circuitName, 2));
     }
-    // Now we check if an input pin is connected to an output and in case of
-    // a Splitter if it is connected to either of them
+    /*
+     * Now we check if an input pin is connected to an output and in case of
+     * a Splitter if it is connected to either of them
+     */
+    drc.clear();
     drc.add(
         new SimpleDrcContainer(
             myCircuit,
@@ -784,7 +787,7 @@ public class Netlist {
         final var searchIter = mySplitters.listIterator(mySplitters.indexOf(thisSplitter) + 1);
         while (searchIter.hasNext() && !dupeFound) {
           final var SearchSplitter = searchIter.next();
-          if (SearchSplitter.getLocation().equals(thisSplitter.getLocation())) {
+          if (SearchSplitter.getLocation().equals(thisSplitter.getLocation()) && SearchSplitter.getEnds().size() == thisSplitter.getEnds().size()) {
             dupeFound = true;
             for (var i = 0; i < SearchSplitter.getEnds().size(); i++) {
               if (!SearchSplitter.getEnd(i)
@@ -939,7 +942,8 @@ public class Netlist {
       }
       if (rootNet < 0) {
         Reporter.report.addFatalErrorFmt(
-            "BUG: Splitter without a bus connection\n ==> %s:%d\n",
+            "%s: BUG: Splitter without a bus connection\n ==> %s:%d\n",
+            myCircuit.getName(),
             this.getClass().getName().replace(".", "/"),
             Thread.currentThread().getStackTrace()[2].getLineNumber());
         this.clear();
@@ -1306,6 +1310,13 @@ public class Netlist {
 
   public Integer getNetId(Net selectedNet) {
     return myNets.indexOf(selectedNet);
+  }
+
+  public String getNetHdlName(Net selectedNet) {
+    if (selectedNet.hasTunnel()) {
+      return "_" + selectedNet.getTunnelNames().iterator().next();
+    }
+    return String.valueOf(this.getNetId(selectedNet));
   }
 
   public ConnectionPoint getNetlistConnectionForSubCircuit(String label, int PortIndex, byte bitindex) {

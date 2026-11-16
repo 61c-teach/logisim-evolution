@@ -279,6 +279,9 @@ public class EditTool extends Tool {
 
   @Override
   public void keyPressed(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     int code = e.getKeyCode();
     int modifier = e.getModifiersEx();
     if (code == KeyEvent.VK_DELETE || code == KeyEvent.VK_BACK_SPACE) {
@@ -319,6 +322,9 @@ public class EditTool extends Tool {
 
   @Override
   public void keyReleased(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     if (e.getKeyCode() == KeyEvent.VK_ALT) {
       updateLocation(canvas, e);
       e.consume();
@@ -329,6 +335,9 @@ public class EditTool extends Tool {
 
   @Override
   public void keyTyped(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     select.keyTyped(canvas, e);
   }
 

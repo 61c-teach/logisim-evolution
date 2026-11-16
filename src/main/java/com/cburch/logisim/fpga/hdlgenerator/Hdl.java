@@ -244,6 +244,10 @@ public class Hdl {
     return isVhdl() ? Vhdl.getVhdlKeyword("OPEN") : empty ? "" : "'bz";
   }
 
+  public static char wildcard() {
+    return isVhdl() ? '-' : '?';
+  }
+
   public static String vectorLoopId() {
     return isVhdl() ? Vhdl.getVhdlKeyword(" DOWNTO ") : ":";
   }
@@ -279,7 +283,7 @@ public class Hdl {
       }
     } else {
       contents.append(nrOfBits).append("'d");
-      contents.append(floatingPinTiedToGround ? "0" : "-1");
+      contents.append(floatingPinTiedToGround ? "0" : "x");
     }
     return contents.toString();
   }
@@ -341,9 +345,9 @@ public class Hdl {
           // The net is connected, we have to find out if the connection
           // is to a bus or to a normal net.
           netName = (solderPoint.getParentNet().getBitWidth() == 1)
-                  ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, myNetlist.getNetId(solderPoint.getParentNet()))
+                  ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, myNetlist.getNetHdlName(solderPoint.getParentNet()))
                   : LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME,
-                      myNetlist.getNetId(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex());
+                      myNetlist.getNetHdlName(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex());
         }
       }
     }
@@ -367,8 +371,8 @@ public class Hdl {
           // is to a bus or to a normal net.
           busName =
               !connectedNet.isBus()
-                  ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, theNets.getNetId(connectedNet))
-                  : LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME, theNets.getNetId(connectedNet), connectedNetBitIndex);
+                  ? LineBuffer.formatHdl("{{1}}{{2}}", NET_NAME, theNets.getNetHdlName(connectedNet))
+                  : LineBuffer.formatHdl("{{1}}{{2}}{{<}}{{3}}{{>}}", BUS_NAME, theNets.getNetHdlName(connectedNet), connectedNetBitIndex);
         }
       }
     }
@@ -384,7 +388,7 @@ public class Hdl {
     final var connectedNet = connectionInformation.get((byte) 0).getParentNet();
     return LineBuffer.formatHdl("{{1}}{{2}}{{3}}",
         BUS_NAME,
-        theNets.getNetId(connectedNet),
+        theNets.getNetHdlName(connectedNet),
         splitVector(connectionInformation.get((byte) (connectionInformation.getNrOfBits() - 1)).getParentNetBitIndex(),
                     connectionInformation.get((byte) (0)).getParentNetBitIndex()));
   }
@@ -397,7 +401,7 @@ public class Hdl {
     if (!theNets.isContinuesBus(comp, endIndex)) return null;
     final var connectedNet = connectionInformation.get((byte) 0).getParentNet();
     if (connectedNet.getBitWidth() != nrOfBits) return getBusNameContinues(comp, endIndex, theNets);
-    return LineBuffer.format("{{1}}{{2}}", BUS_NAME, theNets.getNetId(connectedNet));
+    return LineBuffer.format("{{1}}{{2}}", BUS_NAME, theNets.getNetHdlName(connectedNet));
   }
 
   public static String getClockNetName(netlistComponent comp, int endIndex, Netlist theNets) {
@@ -493,12 +497,12 @@ public class Hdl {
                  */
                 if (solderPoint.getParentNet().getBitWidth() == 1) {
                   /* The connection is to a Net */
-                  netMap.put(sourceNetName.toString(), String.format("%s%d", NET_NAME,
-                      theNets.getNetId(solderPoint.getParentNet())));
+                  netMap.put(sourceNetName.toString(), String.format("%s%s", NET_NAME,
+                      theNets.getNetHdlName(solderPoint.getParentNet())));
                 } else {
                   /* The connection is to an entry of a bus */
-                  netMap.put(sourceNetName.toString(), String.format("%s%d(%d)", BUS_NAME,
-                      theNets.getNetId(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex()));
+                  netMap.put(sourceNetName.toString(), String.format("%s%s(%d)", BUS_NAME,
+                      theNets.getNetHdlName(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex()));
                 }
               }
             }
@@ -520,12 +524,12 @@ public class Hdl {
                  */
                 if (solderPoint.getParentNet().getBitWidth() == 1) {
                   /* The connection is to a Net */
-                  seperateSignals.add(String.format("%s%d", NET_NAME,
-                      theNets.getNetId(solderPoint.getParentNet())));
+                  seperateSignals.add(String.format("%s%s", NET_NAME,
+                      theNets.getNetHdlName(solderPoint.getParentNet())));
                 } else {
                   /* The connection is to an entry of a bus */
-                  seperateSignals.add(String.format("%s%d[%d]", BUS_NAME,
-                      theNets.getNetId(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex()));
+                  seperateSignals.add(String.format("%s%s[%d]", BUS_NAME,
+                      theNets.getNetHdlName(solderPoint.getParentNet()), solderPoint.getParentNetBitIndex()));
                 }
               }
             }

@@ -83,17 +83,17 @@ public class MultiplexerHdlGeneratorFactory extends AbstractHdlGeneratorFactory 
 
           always @(*)
           begin
-             if (~enable) s_selected_vector <= 0;
+             if (~enable) s_selected_vector = 0;
              else case (sel)
           """);
       for (var i = 0; i < (1 << nrOfSelectBits) - 1; i++) {
         contents
             .add("      {{1}}:", Hdl.getConstantVector(i, nrOfSelectBits))
-            .add("         s_selected_vector <= muxIn_{{1}};", i);
+            .add("         s_selected_vector = muxIn_{{1}};", i);
       }
       contents
           .add("     default:")
-          .add("        s_selected_vector <= muxIn_{{1}};", (1 << nrOfSelectBits) - 1)
+          .add("        s_selected_vector = muxIn_{{1}};", (1 << nrOfSelectBits) - 1)
           .add("   endcase")
           .add("end");
     }

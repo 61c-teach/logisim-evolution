@@ -87,6 +87,21 @@ public class ShifterHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
                               ({{shiftMode}} == 3) ||
                               ({{shiftMode}} == 4) ) ? dataA : dataA&(~shiftAmount);
             """);
+      } else if (nrOfBits == 2) {
+        // the other case that nrOfShiftBits == 1
+        // shiftAmount is a 1 bit wire so cannot be indexed into
+        // therefore, special case
+        contents.add("""
+            assign s_stage0ShiftIn = (({{shiftMode}} == 1) || ({{shiftMode}} == 3))
+                 ? dataA[1] : ({{shiftMode}} == 4) ? dataA[0] : 0;
+  
+            assign result = (shiftAmount == 0)
+                 ? dataA
+                 : (({{shiftMode}} == 0) || ({{shiftMode}} == 1))
+                    ? {dataA[0:0],s_stage0ShiftIn}
+                    : {s_stage0ShiftIn,dataA[1:1]};
+  
+            """);
       } else {
         for (var stage = 0; stage < nrOfShiftBits; stage++) {
           contents.add(getStageFunctionalityVerilog(stage, nrOfBits));
@@ -111,9 +126,9 @@ public class ShifterHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
     if (stageNumber == 0) {
       contents.add("""
           assign s_stage0ShiftIn = (({{shiftMode}} == 1) || ({{shiftMode}} == 3))
-               ? dataA[{{shiftMode}}] : ({{nrOfBits1}} == 4) ? dataA[0] : 0;
+               ? dataA[{{nrOfBits1}}] : ({{shiftMode}} == 4) ? dataA[0] : 0;
 
-          assign s_stage0Result  = (shiftAmount == 0)
+          assign s_stage0Result  = (shiftAmount[0] == 0)
                ? dataA
                : (({{shiftMode}} == 0) || ({{shiftMode}} == 1))
                   ? {dataA[{{nrOfBits2}}:0],s_stage0ShiftIn}
@@ -135,7 +150,7 @@ public class ShifterHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
                                      ({{shiftMode}} == 4) ?
                                      s_stage{{stageNumber1}}Result[{{nrOfBitsToShift1}}:0] : 0;
 
-          assign s_stage{{stageNumber}}Result  = (shiftAmount[{{stageNumber}}]==0) ?
+          assign s_stage{{stageNumber}}Result  = (shiftAmount[{{stageNumber}}] == 0) ?
                                      s_stage{{stageNumber1}}Result :
                                      (({{shiftMode}} == 0)||({{shiftMode}} == 1)) ?
                                      {s_stage{{stageNumber1}}Result[{{bitsShiftDiff1}}:0],s_stage{{stageNumber}}ShiftIn} :

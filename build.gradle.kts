@@ -98,10 +98,7 @@ java {
  * Setting up all shared vars and parameters.
  */
 extra.apply {
-  // NOTE: optional suffix is prefixed with `-` (because of how LogisimVersion class parses it), which
-  // I remove here because `jpackage` tool does not like it when used to build the RPM package.
-  // Do NOT use `project.version` instead.
-  val appVersion = (project.version as String).replace("-", "")
+  val appVersion = project.version as String
   set(APP_VERSION, appVersion)
   logger.info("appVersion: ${appVersion}")
 
@@ -154,7 +151,7 @@ extra.apply {
   logger.debug("targetFilePathBaseShort: \"${targetDir}/${baseFilenameShort}\"")
 
   // Name of application shadowJar file.
-  val shadowJarFilename = "${baseFilename}-all.jar"
+  val shadowJarFilename = "${baseFilename}.jar"
   set(SHADOW_JAR_FILE_NAME, shadowJarFilename)
   logger.debug("shadowJarFilename: \"${shadowJarFilename}\"")
 
@@ -1043,6 +1040,7 @@ tasks {
   shadowJar {
     archiveBaseName.set(project.name)
     archiveVersion.set(ext.get(APP_VERSION) as String)
+    archiveClassifier.set("")
     from(".") {
       include("LICENSE.md")
       include("README.md")

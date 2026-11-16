@@ -103,6 +103,10 @@ public class PlexersLibrary extends Library {
 
   public static final Attribute<BitWidth> ATTR_SELECT =
       Attributes.forBitWidth("select", S.getter("plexerSelectBitsAttr"), 1, 8);
+  // 61C: the priority encoder keeps its own attribute ("select_enc", up to 64 inputs) so that
+  // course .circ files saved with it still load.
+  public static final Attribute<BitWidth> ATTR_SELECT_ENC =
+      Attributes.forBitWidth("select_enc", S.getter("plexerSelectBitsAttr"), 1, 6);
   public static final Object DEFAULT_SELECT = BitWidth.create(1);
 
   public static final Attribute<Boolean> ATTR_TRISTATE =

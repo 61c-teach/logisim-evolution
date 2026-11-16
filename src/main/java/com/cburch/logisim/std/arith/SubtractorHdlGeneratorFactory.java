@@ -34,7 +34,6 @@ public class SubtractorHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
         .addWire("s_extendeddataA", EXTENDED_BITS_ID)
         .addWire("s_extendeddataB", EXTENDED_BITS_ID)
         .addWire("s_sumresult", EXTENDED_BITS_ID)
-        .addWire("n_bIn", 1)
         .addWire("s_carry", 1);
     myPorts
         .add(Port.INPUT, "dataA", NR_OF_BITS_ID, Subtractor.IN0, StdAttr.WIDTH)
@@ -64,9 +63,9 @@ public class SubtractorHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
       contents.add("borrowOut <= {{not}}(s_sumresult(" + EXTENDED_BITS_STRING + "-1));");
     } else {
       contents.add("""
-          assign n_bIn = ~borrowIn;
-          assign {s_carry,result} = dataA + ~(dataB) + n_bIn;
-          assign borrowOut        = ~s_carry;
+          // 61C: ~dataB would be widened before inverting, so subtract directly.
+          assign {s_carry,result} = dataA - dataB - borrowIn;
+          assign borrowOut        = s_carry;
           """);
     }
     return contents.empty();

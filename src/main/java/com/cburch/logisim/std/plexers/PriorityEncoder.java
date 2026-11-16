@@ -46,9 +46,9 @@ public class PriorityEncoder extends InstanceFactory {
   public PriorityEncoder() {
     super(_ID, S.getter("priorityEncoderComponent"), new PriorityEncoderHdlGeneratorFactory());
     setAttributes(
-        new Attribute[] {StdAttr.FACING, PlexersLibrary.ATTR_SELECT, PlexersLibrary.ATTR_DISABLED},
+        new Attribute[] {StdAttr.FACING, PlexersLibrary.ATTR_SELECT_ENC, PlexersLibrary.ATTR_DISABLED},
         new Object[] {Direction.EAST, BitWidth.create(3), PlexersLibrary.DISABLED_ZERO});
-    setKeyConfigurator(new BitWidthConfigurator(PlexersLibrary.ATTR_SELECT, 1, 5, 0));
+    setKeyConfigurator(new BitWidthConfigurator(PlexersLibrary.ATTR_SELECT_ENC, 1, 6, 0));
     setIcon(new ArithmeticIcon("Pri"));
     setFacingAttribute(StdAttr.FACING);
   }
@@ -62,7 +62,7 @@ public class PriorityEncoder extends InstanceFactory {
   @Override
   public Bounds getOffsetBounds(AttributeSet attrs) {
     final var dir = attrs.getValue(StdAttr.FACING);
-    final var select = attrs.getValue(PlexersLibrary.ATTR_SELECT);
+    final var select = attrs.getValue(PlexersLibrary.ATTR_SELECT_ENC);
     final var inputs = 1 << select.getWidth();
     final var offs = -5 * inputs;
     final var len = 10 * inputs + 10;
@@ -84,7 +84,7 @@ public class PriorityEncoder extends InstanceFactory {
 
   @Override
   protected void instanceAttributeChanged(Instance instance, Attribute<?> attr) {
-    if (attr == StdAttr.FACING || attr == PlexersLibrary.ATTR_SELECT) {
+    if (attr == StdAttr.FACING || attr == PlexersLibrary.ATTR_SELECT_ENC) {
       instance.recomputeBounds();
       updatePorts(instance);
     } else if (attr == PlexersLibrary.ATTR_DISABLED) {
@@ -130,7 +130,7 @@ public class PriorityEncoder extends InstanceFactory {
 
   @Override
   public void propagate(InstanceState state) {
-    final var select = state.getAttributeValue(PlexersLibrary.ATTR_SELECT);
+    final var select = state.getAttributeValue(PlexersLibrary.ATTR_SELECT_ENC);
     var n = 1 << select.getWidth();
     final var enabled = state.getPortValue(n + EN_IN) != Value.FALSE;
 
@@ -162,7 +162,7 @@ public class PriorityEncoder extends InstanceFactory {
 
   private void updatePorts(Instance instance) {
     Object dir = instance.getAttributeValue(StdAttr.FACING);
-    final var select = instance.getAttributeValue(PlexersLibrary.ATTR_SELECT);
+    final var select = instance.getAttributeValue(PlexersLibrary.ATTR_SELECT_ENC);
     var n = 1 << select.getWidth();
     final var ps = new Port[n + 4];
     if (dir == Direction.NORTH || dir == Direction.SOUTH) {

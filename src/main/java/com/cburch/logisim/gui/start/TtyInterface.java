@@ -22,6 +22,9 @@ import com.cburch.logisim.file.LoadFailedException;
 import com.cburch.logisim.file.Loader;
 import com.cburch.logisim.file.LogisimFile;
 import com.cburch.logisim.gui.hex.HexFile;
+import com.cburch.logisim.gui.log.TestRecorder;
+import com.cburch.logisim.gui.log.TestReference;
+import com.cburch.logisim.gui.log.VcdWriter;
 import com.cburch.logisim.instance.Instance;
 import com.cburch.logisim.instance.InstanceState;
 import com.cburch.logisim.instance.StdAttr;
@@ -195,7 +198,7 @@ public class TtyInterface {
   private static String valueFormat(Value v, int format) {
     if ((format & FORMAT_TABLE_BIN) != 0) {
       // everything in binary
-      return v.toString();
+      return v.toBinaryString();
     } else if ((format & FORMAT_TABLE_HEX) != 0) {
       // everything thing in hex, no prefixes
       return v.toHexString();
@@ -293,7 +296,7 @@ public class TtyInterface {
     final var loader = new Loader(null);
     LogisimFile file;
     try {
-      file = loader.openLogisimFile(fileToOpen, args.getSubstitutions());
+      file = loader.openLogisimFile(fileToOpen, args.getSubstitutions(), args.getLibSubstitutions());
     } catch (LoadFailedException e) {
       logger.error("{}", S.get("ttyLoadError", fileToOpen.getName()));
       return EXIT_FAILURE;
@@ -326,18 +329,14 @@ public class TtyInterface {
     }
 
     final var pinNames = Analyze.getPinLabels(circuit);
-    final var outputPins = new ArrayList<Instance>();
-    final var inputPins = new ArrayList<Instance>();
     Instance haltPin = null;
     for (final var entry : pinNames.entrySet()) {
       final var pin = entry.getKey();
       final var pinName = entry.getValue();
-      if (Pin.FACTORY.isInputPin(pin)) {
-        inputPins.add(pin);
-      } else {
-        outputPins.add(pin);
+      if (!Pin.FACTORY.isInputPin(pin)) {
         if (pinName.equals("halt")) {
           haltPin = pin;
+          break;
         }
       }
     }
@@ -368,7 +367,21 @@ public class TtyInterface {
     }
 
     final var ttyFormat = args.getTtyFormat();
-    final var simCode = runSimulation(circState, outputPins, haltPin, ttyFormat);
+    VcdWriter vcd = null;
+    TestRecorder vcdRecorder = null;
+    if (args.getVcdFile() != null) {
+      try {
+        TestReference ref = null;
+        if (args.getVcdRefFile() != null) ref = TestReference.load(args.getVcdRefFile());
+        vcdRecorder = new TestRecorder(circuit);
+        vcd = new VcdWriter(args.getVcdFile(), circState, vcdRecorder, ref);
+      } catch (IOException e) {
+        logger.error("vcd: {}", e.toString());
+        return EXIT_FAILURE;
+      }
+    }
+    final var simCode = runSimulation(circState, pinNames, haltPin, ttyFormat, vcd, vcdRecorder);
+    if (vcd != null) System.err.println("vcd: wrote " + args.getVcdFile().getPath());
     return finishSimulation(circState, args.getSaveFile(), simCode);
   }
 
@@ -488,11 +501,37 @@ public class TtyInterface {
   }
 
   static int runSimulation(
-      CircuitState circState, ArrayList<Instance> outputPins, Instance haltPin, int format) {
+      CircuitState circState, Map<Instance, String> pinLabels, Instance haltPin, int format) {
+    return runSimulation(circState, pinLabels, haltPin, format, null, null);
+  }
+
+  static int runSimulation(CircuitState circState, Map<Instance, String> pinLabels, Instance haltPin, int format,
+                           VcdWriter vcd, TestRecorder vcdRecorder) {
     final var showTable = (format & FORMAT_TABLE) != 0;
     final var showSpeed = (format & FORMAT_SPEED) != 0;
     final var showTty = (format & FORMAT_TTY) != 0;
     final var showHalt = (format & FORMAT_HALT) != 0;
+
+    ArrayList<String> formats = new ArrayList<>();
+    ArrayList<String> headers = new ArrayList<>();
+    ArrayList<Instance> outputPins = new ArrayList<>();
+    for (Map.Entry<Instance, String> entry : pinLabels.entrySet()) {
+      Instance pin = entry.getKey();
+      String pinName = entry.getValue();
+      if (Pin.FACTORY.isInputPin(pin)) {
+        headers.add(pinName);
+      }
+    }
+    for (Map.Entry<Instance, String> entry : pinLabels.entrySet()) {
+      Instance pin = entry.getKey();
+      String pinName = entry.getValue();
+      if (!Pin.FACTORY.isInputPin(pin)) {
+        if (pin != haltPin) {
+          headers.add(pinName);
+        }
+        outputPins.add(pin);
+      }
+    }
 
     ArrayList<InstanceState> keyboardStates = null;
     StdinThread stdinThread = null;
@@ -527,13 +566,29 @@ public class TtyInterface {
             curOutputs.add(val);
           }
         }
-        displayTableRow(prevOutputs, curOutputs);
+        displayTableRow(tickCount == 0, prevOutputs, curOutputs, headers, formats, format);
         prevOutputs = curOutputs;
       }
       if (haltPin != null) {
         final var pinState = circState.getReusableInstanceState(haltPin); // OK as we are not propagating
         final var val = Pin.FACTORY.getValue(pinState);
         halted = val.equals(Value.TRUE);
+      }
+      if (vcd != null) {
+        try {
+          final var time = tickCount * VcdWriter.HALF_CYCLE;
+          vcd.sample(time);
+          final var row = vcdRecorder.sample(circState);
+          if (row >= 0) vcd.row(time, row);
+          if (halted || prop.isOscillating()) {
+            final var summary = vcd.finish(time + 2 * VcdWriter.HALF_CYCLE);
+            if (summary != null) System.err.println("vcd: " + summary);
+            vcd = null;
+          }
+        } catch (IOException e) {
+          logger.error("vcd: {}", e.toString());
+          vcd = null;
+        }
       }
 
       if (halted) {

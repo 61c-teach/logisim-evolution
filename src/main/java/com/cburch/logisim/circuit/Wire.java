@@ -23,6 +23,7 @@ import com.cburch.logisim.data.BitWidth;
 import com.cburch.logisim.data.Bounds;
 import com.cburch.logisim.data.Location;
 import com.cburch.logisim.fpga.designrulecheck.Netlist;
+import com.cburch.logisim.instance.StdAttr;
 import com.cburch.logisim.tools.CustomHandles;
 import com.cburch.logisim.util.Cache;
 import com.cburch.logisim.util.GraphicsUtil;
@@ -77,7 +78,7 @@ public final class Wire implements Component, AttributeSet, CustomHandles, Itera
             BUS_WIDTH_POS_NONE, BUS_WIDTH_POS_START, BUS_WIDTH_POS_CENTER, BUS_WIDTH_POS_END
           });
 
-  private static final List<Attribute<?>> ATTRIBUTES = Arrays.asList(DIR_ATTR, LEN_ATTR, BUS_WIDTH_POS_ATTR);
+  private static final List<Attribute<?>> ATTRIBUTES = Arrays.asList(DIR_ATTR, LEN_ATTR, BUS_WIDTH_POS_ATTR, StdAttr.LOCKED);
 
   private static final Cache cache = new Cache();
 
@@ -279,6 +280,11 @@ public final class Wire implements Component, AttributeSet, CustomHandles, Itera
   @Override
   public int hashCode() {
     return e0.hashCode() * 31 + e1.hashCode();
+  }
+
+  public boolean isLocked() {
+    Boolean isLocked = getAttributeSet().getValue(StdAttr.LOCKED);
+    return isLocked != null && isLocked.booleanValue();
   }
 
   public boolean isParallel(Wire other) {

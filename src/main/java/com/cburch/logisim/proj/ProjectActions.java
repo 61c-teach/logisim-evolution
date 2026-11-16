@@ -363,7 +363,7 @@ public final class ProjectActions {
         includeDependencies));
   }
 
-  private static void updatecircs(LogisimFile lib, Project proj) {
+  public static void updatecircs(LogisimFile lib, Project proj) {
     for (final var circ : lib.getCircuits()) {
       circ.setProject(proj);
     }
@@ -471,11 +471,11 @@ public final class ProjectActions {
     return proj;
   }
 
-  public static Project doOpen(SplashScreen monitor, File source, Map<File, File> substitutions)
+  public static Project doOpen(SplashScreen monitor, File source, Map<File, File> substitutions, Map<String, String> libSubstitutions)
       throws LoadFailedException {
     if (monitor != null) monitor.setProgress(SplashScreen.FILE_LOAD);
     final var loader = new Loader(monitor);
-    final var file = loader.openLogisimFile(source, substitutions);
+    final var file = loader.openLogisimFile(source, substitutions, libSubstitutions);
     AppPreferences.updateRecentFile(source);
 
     return completeProject(monitor, loader, file, false);

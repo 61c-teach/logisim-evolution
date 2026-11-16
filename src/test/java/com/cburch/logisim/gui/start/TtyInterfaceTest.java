@@ -145,7 +145,7 @@ public class TtyInterfaceTest {
     assertEquals(
         TtyInterface.EXIT_OSCILLATION,
         TtyInterface.runSimulation(
-            state, new ArrayList<>(), null, TtyInterface.FORMAT_HALT));
+            state, new java.util.LinkedHashMap<>(), null, TtyInterface.FORMAT_HALT));
   }
 
   private Startup startupFor(File circuitFile, int format) {

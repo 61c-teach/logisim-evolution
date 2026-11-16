@@ -88,17 +88,17 @@ public class MultiplierHdlGeneratorFactory extends AbstractHdlGeneratorFactory {
               always @(*)
               begin
                  s_carryIn[{{nrOfBits}}-1:0] = carryIn;
-                 if ({{unsigned}} == 1)
+                 if ({{unsigned}} == 0) // 61C: SIGNED_MAP has UNSIGNED = 0
                     begin
                        s_carryIn[{{calcBits}}-1:{{nrOfBits}}] = 0;
                        s_multUnsigned = $unsigned(inputA) * $unsigned(inputB);
                        s_intermediateResult = $unsigned(s_multUnsigned) + $unsigned(s_carryIn);
                      end
-                  else if ({{unsigned}}== 2)
+                  else if ({{unsigned}} == 1) // SIGNED_UNSIGNED
                      begin
                        s_carryIn[{{calcBits}}-1:{{nrOfBits}}] = 0;
-                       s_multUnsigned = $signed(inputA) * $unsigned(inputB);
-                       s_intermediateResult = $signed(s_multUnsigned) + $signed(s_carryIn);
+                       s_multSigned = $signed(inputA) * $signed({1'b0, inputB}); // 61C: mixing signed/unsigned makes the product unsigned
+                       s_intermediateResult = $signed(s_multSigned) + $signed(s_carryIn);
                      end
                   else
                     begin

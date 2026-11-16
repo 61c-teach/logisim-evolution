@@ -16,6 +16,7 @@ import com.cburch.logisim.data.AttributeOption;
 import com.cburch.logisim.data.Attributes;
 import com.cburch.logisim.data.BitWidth;
 import com.cburch.logisim.data.Value;
+import com.cburch.logisim.soc.rv32im.RV32imAssembler;
 import com.cburch.logisim.util.StringGetter;
 
 public abstract class RadixOption extends AttributeOption {
@@ -200,6 +201,42 @@ public abstract class RadixOption extends AttributeOption {
     }
   }
 
+  private static class RadixRISCV extends RadixOption {
+    private RV32imAssembler asm;
+
+    private RadixRISCV() {
+      super("riscv", S.getter("radixRiscv"));
+      this.asm = new RV32imAssembler();
+    }
+
+    @Override
+    public int getMaxLength(BitWidth width) {
+      // TODO: verify this is the longest instruction
+      if (width.getWidth() == 0) return 1;
+      return 20;
+    }
+
+    @Override
+    public String toString(Value value) {
+      if (value.getWidth() == 0) {
+        return "-";
+      }
+      if (value.getWidth() != 32) {
+        return "Invalid Bit Width";
+      }
+      asm.decode((int) value.toLongValue());
+      if (asm.getExeUnit() == null) {
+        return "Invalid Instruction";
+      }
+      return asm.getExeUnit().getAsmInstruction().replaceAll("\\s+", " ");
+    }
+
+    @Override
+    public String getIndexChar() {
+      return "r";
+    }
+  }
+
   public static RadixOption decode(String value) {
     for (final var opt : OPTIONS) {
       if (value.equals(opt.saveName)) {
@@ -220,8 +257,10 @@ public abstract class RadixOption extends AttributeOption {
 
   public static final RadixOption RADIX_FLOAT = new RadixFloat();
 
+  public static final RadixOption RADIX_RISCV = new RadixRISCV();
+
   public static final RadixOption[] OPTIONS = {
-    RADIX_2, RADIX_8, RADIX_10_SIGNED, RADIX_10_UNSIGNED, RADIX_16, RADIX_FLOAT
+    RADIX_2, RADIX_8, RADIX_10_SIGNED, RADIX_10_UNSIGNED, RADIX_16, RADIX_FLOAT, RADIX_RISCV
   };
 
   public static final Attribute<RadixOption> ATTRIBUTE = Attributes.forOption("radix", S.getter("radixAttr"), OPTIONS);

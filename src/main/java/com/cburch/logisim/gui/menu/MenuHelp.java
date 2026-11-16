@@ -79,6 +79,7 @@ class MenuHelp extends Menu implements ActionListener {
       addSeparator();
       add(about);
     }
+    disableHelp();
   }
 
   @Override

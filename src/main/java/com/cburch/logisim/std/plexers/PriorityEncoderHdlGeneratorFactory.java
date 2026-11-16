@@ -30,12 +30,12 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
   public PriorityEncoderHdlGeneratorFactory() {
     super();
     myParametersList
-        .add(NR_OF_INPUT_BITS_STRING, NR_OF_INPUT_BITS_ID, HdlParameters.MAP_POW2, PlexersLibrary.ATTR_SELECT)
-        .add(NR_OF_SELECT_BITS_STRING, NR_OF_SELECT_BITS_ID, HdlParameters.MAP_INT_ATTRIBUTE, PlexersLibrary.ATTR_SELECT);
+        .add(NR_OF_INPUT_BITS_STRING, NR_OF_INPUT_BITS_ID, HdlParameters.MAP_POW2, PlexersLibrary.ATTR_SELECT_ENC)
+        .add(NR_OF_SELECT_BITS_STRING, NR_OF_SELECT_BITS_ID, HdlParameters.MAP_INT_ATTRIBUTE, PlexersLibrary.ATTR_SELECT_ENC);
     myWires
         .addWire("s_inIsZero", 1)
         .addWire("s_address", 6)
-        .addWire("s_selectVector0", 64)
+        .addWire("s_selectVector0", 65)
         .addWire("s_selectVector1", 32)
         .addWire("s_selectVector2", 16)
         .addWire("s_selectVector3", 8)
@@ -125,7 +125,7 @@ public class PriorityEncoderHdlGeneratorFactory extends AbstractHdlGeneratorFact
           assign address = (~enable) ? 0 : s_address[{{selBits}}-1:0];
           assign s_inIsZero = (inputVector == 0) ? 1'b1 : 1'b0;
 
-          assign s_selectVector0[63:{{inBits}}] = 0;
+          assign s_selectVector0[64:{{inBits}}] = 0;
           assign s_selectVector0[{{inBits}}-1:0] = inputVector;
           assign s_address[5] = (s_selectVector0[63:32] == 0) ? 1'b0 : 1'b1;
           assign s_selectVector1 = (s_selectVector0[63:32] == 0) ? s_selectVector0[31:0] : s_selectVector0[63:32];

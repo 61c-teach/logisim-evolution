@@ -311,8 +311,10 @@ public class SelectTool extends Tool {
                 canvas.getSelection().getAnchoredComponents());
         moveGesture = gesture;
       }
-      if (dx != 0 || dy != 0) {
-        var queued = gesture.enqueueRequest(dx, dy);
+      if (canvas.getSelection().hasLocked()) {
+        canvas.setErrorMessage(S.getter("cannotModifyLockedError"));
+      } else if (dx != 0 || dy != 0) {
+        boolean queued = gesture.enqueueRequest(dx, dy);
         if (queued) {
           canvas.setErrorMessage(new ComputingMessage(dx, dy), COLOR_COMPUTING);
           // maybe CPU scheduled led the request to be satisfied
@@ -339,6 +341,9 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyPressed(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     if (state == MOVING && e.getKeyCode() == KeyEvent.VK_SHIFT) {
       handleMoveDrag(canvas, curDx, curDy, e.getModifiersEx());
     } else {
@@ -396,6 +401,9 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyReleased(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     if (state == MOVING && e.getKeyCode() == KeyEvent.VK_SHIFT) {
       handleMoveDrag(canvas, curDx, curDy, e.getModifiersEx());
     } else {
@@ -405,6 +413,9 @@ public class SelectTool extends Tool {
 
   @Override
   public void keyTyped(Canvas canvas, KeyEvent e) {
+    if (canvas.getSelection().hasLocked()) {
+      return;
+    }
     processKeyEvent(canvas, e, KeyConfigurationEvent.KEY_TYPED);
   }
 
@@ -495,6 +506,8 @@ public class SelectTool extends Tool {
           canvas.setErrorMessage(S.getter("cannotModifyError"));
         } else if (proj.getSelection().hasConflictWhenMoved(dx, dy)) {
           canvas.setErrorMessage(S.getter("exclusiveError"));
+        } else if (proj.getSelection().hasLocked()) {
+          canvas.setErrorMessage(S.getter("cannotModifyLockedError"));
         } else {
           final var connect = shouldConnect(e.getModifiersEx());
           drawConnections = false;
